@@ -1,25 +1,34 @@
 package com.sunsunsoft.shutaro.logview;
 
 
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-
+import android.view.View.OnClickListener;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class FragmentTop extends Fragment {
+public class FragmentTop extends Fragment implements OnClickListener{
     public static final String TAG = "FragmentTop";
 
-    private TopView topView;
+    private static final int LOG_MAX = 100;
 
+    private static final int[] buttonIds = {
+            R.id.button,
+            R.id.button2,
+            R.id.button3,
+            R.id.button4
+    };
+
+    private LogBuffer logBuf = new LogBuffer(LOG_MAX);
+
+    private LogView logView;
+
+    private boolean logTypeSwitch = false;
 
     public FragmentTop() {
         // Required empty public constructor
@@ -32,12 +41,39 @@ public class FragmentTop extends Fragment {
         View view = inflater.inflate(R.layout.fragment_top, container, false);
 
         // Viewを追加
-        topView = new TopView(getContext());
+        logView = new LogView(getContext());
         LinearLayout containerView = (LinearLayout)view.findViewById(R.id.view_container);
-        containerView.addView(topView);
+        containerView.addView(logView);
+
+        // Set listener
+        for (int id : buttonIds) {
+            view.findViewById(id).setOnClickListener(this);
+        }
 
         return view;
     }
 
+    public void onClick(View view) {
+        LogBase log = null;
+        switch(view.getId()) {
+            case R.id.button:
+                logBuf.addPointLog(LogId.Log1, System.nanoTime())
+                        .dispLog();
 
+                break;
+            case R.id.button2:
+                logBuf.addTextLog(LogId.Log1, System.nanoTime(), "button2")
+                        .dispLog();
+                break;
+            case R.id.button3: {
+                LogAreaType areaType = logTypeSwitch ? LogAreaType.End : LogAreaType.Start;
+                logBuf.addAreaLog(LogId.Log1, areaType, System.nanoTime())
+                        .dispLog();
+            }
+                break;
+            case R.id.button4:
+                logBuf.showAllLog();
+                break;
+        }
+    }
 }

@@ -13,7 +13,7 @@ import android.view.View.OnTouchListener;
  * Created by shutaro on 2016/11/27.
  */
 
-public class TopView extends View implements OnTouchListener, ViewTouchCallbacks, UMenuItemCallbacks
+public class LogView extends View implements OnTouchListener, ViewTouchCallbacks, UMenuItemCallbacks
 {
     enum WindowType {
         LogView,
@@ -43,11 +43,11 @@ public class TopView extends View implements OnTouchListener, ViewTouchCallbacks
 
 
     // get/set
-    public TopView(Context context) {
+    public LogView(Context context) {
         this(context, null);
     }
 
-    public TopView(Context context, AttributeSet attrs) {
+    public LogView(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.setOnTouchListener(this);
         mContext = context;
