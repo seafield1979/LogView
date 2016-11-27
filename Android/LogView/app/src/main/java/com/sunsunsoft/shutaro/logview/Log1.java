@@ -6,7 +6,7 @@ import android.util.Log;
  * Created by shutaro on 2016/11/27.
  */
 
-public class Log1 extends LogBase {
+public class Log1 implements LogBase {
 
     /**
      * Consts
@@ -16,6 +16,11 @@ public class Log1 extends LogBase {
     /**
      * Member Variables
      */
+    int id;
+    long time;      // 1 = 1 nano sec
+    String text;
+    LogType type;
+
     LogId logId;
     LogType logType;
     LogAreaType areaType;
@@ -52,8 +57,11 @@ public class Log1 extends LogBase {
     }
 
     public Log1(int id, LogId logId, LogType logType, LogAreaType areaType, long time, String
-            text) {
-        super(id, time, text);
+            text)
+    {
+        this.id = id;
+        this.logId = logId;
+        this.text = text;
         this.logType = logType;
         this.logId = logId;
         this.areaType = areaType;
@@ -72,5 +80,10 @@ public class Log1 extends LogBase {
                 " logId:" + logId +
                 " areaType:" + areaType + " " +
                 "time:" + getFloatTime() +  " " + text;
+    }
+
+    public double getFloatTime()
+    {
+        return (double)time / (double)DIVISOR;
     }
 }

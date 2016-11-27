@@ -6,7 +6,7 @@ package com.sunsunsoft.shutaro.logview;
  * ログ１件分の情報を保持するクラス
  * 特殊な情報を持たせたい場合はこのクラスのサブクラスを使用する
  */
-abstract public class LogBase {
+interface LogBase {
 
     /**
      * Enums
@@ -17,51 +17,39 @@ abstract public class LogBase {
      */
 
     // Nano Sec からSecに変換するための割り算の分母
-    protected static final int DIVISOR = 1000000000;
+    int DIVISOR = 1000000000;
 
 
     /**
      * Static Variables
      */
 
-    /**
-     * Member Variables
-     */
-    int id;
-    long time;      // 1 = 1 nano sec
-    String text;
-    LogType type;
 
     /**
      * Get/Set
      */
-    public LogType getType() {
-        return type;
-    }
-
 
     /**
      * Constructor
      */
-    /**
-     * ログを追加
-     * @param time  1=1ナノ秒 の時間
-     * @param text
-     */
-    public LogBase(int id, long time, String text) {
-        this.id = id;
-        this.time = time;
-        this.text = text;
-    }
 
     /**
      * Methods
      */
 
-    abstract public void dispLog();
-    abstract public String toString();
+    /**
+     * ログをコンソールに出力する
+     */
+    void dispLog();
 
-    protected double getFloatTime() {
-        return (double)time / (double)DIVISOR;
-    }
+    /**
+     * ログをStringに変換する
+     */
+    String toString();
+
+    /**
+     * 浮動小数点型の時間を取得する
+     * @return
+     */
+    double getFloatTime();
 }

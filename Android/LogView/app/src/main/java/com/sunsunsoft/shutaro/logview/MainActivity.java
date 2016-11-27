@@ -11,6 +11,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        UDrawManager.getInstance().init();
+        ULog.init();
+
+        // Realmの初期化
+        RealmManager.initRealm(getApplicationContext());
+
         if (savedInstanceState == null) {
             FragmentTop fragment = new FragmentTop();
 
@@ -19,12 +25,6 @@ public class MainActivity extends AppCompatActivity {
             transaction.add(R.id.fragment_container, fragment, FragmentTop.TAG);
             // 画面に表示
             transaction.commit();
-
-            UDrawManager.getInstance().init();
-            ULog.init();
-
-            // Realmの初期化
-            RealmManager.initRealm(getApplicationContext());
         }
     }
 

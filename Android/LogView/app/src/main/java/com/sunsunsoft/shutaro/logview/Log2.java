@@ -1,5 +1,7 @@
 package com.sunsunsoft.shutaro.logview;
 
+import android.util.Log;
+
 import java.util.Date;
 import java.util.Random;
 
@@ -12,7 +14,9 @@ import io.realm.annotations.Required;
  * 単語カード
  * RealmObjectのサブクラスなのでそのままテーブルとして使用される
  */
-public class Log2 extends RealmObject {
+public class Log2 extends RealmObject implements LogBase{
+    public static final String TAG = "Log2";
+
     @PrimaryKey
     private int id;
 
@@ -80,5 +84,30 @@ public class Log2 extends RealmObject {
 
     public void setAreaType(int areaType) {
         this.areaType = areaType;
+    }
+
+    /**
+     * ログをコンソールに出力する
+     */
+    public void dispLog() {
+        Log.d(TAG, this.toString());
+    }
+
+    /**
+     * ログをStringに変換する
+     */
+    public String toString() {
+        return "id:" + id + " type:" + logType +
+                " logId:" + logId +
+                " areaType:" + areaType + " " +
+                "time:" + getFloatTime() +  " " + text;
+    }
+
+    /**
+     * 浮動小数点型の時間を取得する
+     * @return
+     */
+    public double getFloatTime() {
+        return (double)time / (double)DIVISOR;
     }
 }

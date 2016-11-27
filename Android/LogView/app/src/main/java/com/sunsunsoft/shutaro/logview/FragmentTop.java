@@ -24,9 +24,10 @@ public class FragmentTop extends Fragment implements OnClickListener{
             R.id.button4
     };
 
-    private LogBuffer logBuf = new LogBuffer(LOG_MAX);
-
+    //private LogBufferList logBuf = new LogBufferList(LOG_MAX);
     private LogView logView;
+
+    private LogBufferDB logBuf = LogBufferDB.getInstance();
 
     private boolean logTypeSwitch = false;
 

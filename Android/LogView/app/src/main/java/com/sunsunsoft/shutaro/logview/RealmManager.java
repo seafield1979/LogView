@@ -14,7 +14,7 @@ public class RealmManager {
 
     public static Realm getRealm() { return realm; }
 
-    private static LogViewDataDao logDao;
+    private static Log2Dao logDao;
 
     public static void initRealm(Context context) {
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(context)
@@ -24,10 +24,12 @@ public class RealmManager {
         Realm.setDefaultConfiguration(realmConfig);
         realm = Realm.getDefaultInstance();
 
-        logDao = new LogViewDataDao(realm);
+        logDao = new Log2Dao(realm);
+
+
     }
 
-    public static LogViewDataDao getLogViewDao() {
+    public static Log2Dao getLogViewDao() {
         return logDao;
     }
 
