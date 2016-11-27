@@ -10,7 +10,7 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 
 /**
- * Created by shutaro on 2016/11/27.
+ * LogView本体
  */
 
 public class LogView extends View implements OnTouchListener, ViewTouchCallbacks, UMenuItemCallbacks

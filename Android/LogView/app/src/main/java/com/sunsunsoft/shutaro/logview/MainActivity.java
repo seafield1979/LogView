@@ -22,6 +22,16 @@ public class MainActivity extends AppCompatActivity {
 
             UDrawManager.getInstance().init();
             ULog.init();
+
+            // Realmの初期化
+            RealmManager.initRealm(getApplicationContext());
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        RealmManager.closeRealm();
     }
 }
