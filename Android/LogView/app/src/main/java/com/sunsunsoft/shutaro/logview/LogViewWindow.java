@@ -20,16 +20,9 @@ public class LogViewWindow extends UWindow {
     public static final String TAG = "LogViewWindow";
     private static final int DRAW_PRIORITY = 100;
 
+    private static final int TOP_Y = 50;
+
     private static final int BG_COLOR = Color.BLACK;
-
-    // long型のTimeを各単位の秒に変換するための定数
-    // 以下の定数でlong型のTimeを割り算すると指定の単位の時間が取得できる
-    public static final long PIXCEL_PER_NANO_SEC = 1;
-    public static final long PIXCEL_PER_MICRO_SEC = 1000;
-    public static final long PIXCEL_PER_MILL_SEC = 1000000;
-    public static final long PIXCEL_PER_SEC = 1000000000;
-
-    private static final long DEFAULT_PIXCEL_PER_TIME = PIXCEL_PER_MILL_SEC;
 
     // 再描画のインターバル ms
     private static final int REDRAW_INTERVAL = 1000;
@@ -63,9 +56,6 @@ public class LogViewWindow extends UWindow {
     // 表示エリアの先頭位置の時間
     private long topPosTime;
 
-    // 表示エリアの終端位置の時間
-//    private long endPosTime;
-
     // 表示領域1ページ分の時間
     private long pageTime;
 
@@ -85,7 +75,7 @@ public class LogViewWindow extends UWindow {
         mParentView = parentView;
         mContext = context;
         mLogBuf = logBuf;
-        refreshLogs();
+        updateView();
     }
 
     /**
@@ -115,28 +105,42 @@ public class LogViewWindow extends UWindow {
      */
     public void clear() {
         mLogBuf.clearLog();
-        refreshLogs();
+        updateView();
+    }
+
+    public void zoomIn() {
+        pixelPerTime.zoomIn();
+        updateView();
+    }
+
+    public void zoomOut() {
+        pixelPerTime.zoomOut();
+        updateView();
     }
 
     /**
      * LogViewの表示を更新する
      */
-    private void refreshLogs() {
+    public void updateView() {
         // ログの表示エリアを計算する
 
         // 最初と最後のログに囲まれた時間内のログを表示する
-        startTime = topPosTime = RealmManager.getLogViewDao().selectMinLogTime();
+        startTime = RealmManager.getLogViewDao().selectMinLogTime();
         endTime =  RealmManager.getLogViewDao().selectMaxLogTime();
+
+        // 最後のログのあとに少し余白をも持たせる
+        endTime += pixelPerTime.getDivValue() * 100;
 
         if (startTime == 0) return;
 
         // ScrollViewにサイズを設定する
         contentLen = endTime - startTime;
-        pageTime = getHeight() * pixelPerTime.getDivValue();
+        pageTime = (getHeight() - TOP_Y) * pixelPerTime.getDivValue();
         contentSize.height = contentLen;
 
         mScrollBarV.setPageLen(pageTime);
         mScrollBarV.updateContent(contentSize);
+        topPosTime = mScrollBarV.setBarPos(ScrollBarPos.Bottom) + startTime;
 
         if (true) {
             ULog.print(TAG, "startTime:" + LogBuffer.longToDouble(startTime));
@@ -165,10 +169,10 @@ public class LogViewWindow extends UWindow {
 
         // 表示領域に含まれるログを取得
         List<LogBase> logs = RealmManager.getLogViewDao()
-                .selectByAreaTime(topPosTime, topPosTime + pageTime);
+                .selectByAreaTime(topPosTime, topPosTime + pageTime + 100);
 
         // BGのラインを描画
-        float x = 150, y, topY = 50, endY = (float)getHeight();
+        float x = 150, y, topY = TOP_Y, endY = (float)getHeight();
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.WHITE);
@@ -193,9 +197,9 @@ public class LogViewWindow extends UWindow {
             String value = String.format("%d", memTime / timeUnit.divValue());
             String text = "" + value + " " + timeUnit.unitStr();
 
-            UDraw.drawTextOneLine(canvas, paint, text, UDraw.UAlignment.None, 30, x-150, y,
-                    Color
-                    .WHITE);
+            UDraw.drawTextOneLine(canvas, paint, text, UDraw.UAlignment.None,
+                    30, x-150, y + 5,
+                    Color.WHITE);
 
             memTime += p2t * 100;
         }

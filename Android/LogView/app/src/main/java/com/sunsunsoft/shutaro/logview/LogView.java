@@ -72,6 +72,11 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
     /**
      * Public
      */
+    public void updateView() {
+        mLogViewWin.updateView();
+        invalidate();
+    }
+
     public void clear() {
         mLogViewWin.clear();
         invalidate();
@@ -89,18 +94,18 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
         // 描画オブジェクトクリア
         UDrawManager.getInstance().init();
 
-        // LogViewWindow
-        if (mLogViewWin == null) {
-            mLogViewWin = LogViewWindow.createInstance(getContext(), this, logBuf,
-                    0, 0, getWidth(), getHeight());
-            mWindows[WindowType.LogView.ordinal()] = mLogViewWin;
-        }
-
         // UMenuBar
         if (mMenuBar == null) {
             mMenuBar = UMenuBar.createInstance(this, this, width, height,
                     Color.BLACK);
             mWindows[WindowType.MenuBar.ordinal()] = mMenuBar;
+        }
+
+        // LogViewWindow
+        if (mLogViewWin == null) {
+            mLogViewWin = LogViewWindow.createInstance(getContext(), this, logBuf,
+                    0, 0, getWidth(), getHeight() - mMenuBar.getHeight());
+            mWindows[WindowType.LogView.ordinal()] = mLogViewWin;
         }
 
         // ULogWindow
@@ -184,8 +189,12 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
             case Play:
                 break;
             case ZoomIn:
+                mLogViewWin.zoomIn();
+                invalidate();
                 break;
             case ZoomOut:
+                mLogViewWin.zoomOut();
+                invalidate();
                 break;
         }
     }

@@ -282,7 +282,7 @@ abstract public class UWindow extends UDrawable implements UButtonCallbacks {
             }
         }
         // スクロールバーの表示を更新
-        mScrollBarV.updateScroll(contentTop);
+        mScrollBarV.updateScroll(new PointL((long)contentTop.x,(long)contentTop.y));
 
         return true;
     }

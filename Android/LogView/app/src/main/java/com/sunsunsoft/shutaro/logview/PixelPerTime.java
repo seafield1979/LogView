@@ -150,7 +150,7 @@ enum PixelPerTime {
     /**
      * 次の値に進める
      */
-    public void next() {
+    public void zoomOut() {
         value++;
         if (value >= values().length) {
             value = values().length - 1;
@@ -160,7 +160,7 @@ enum PixelPerTime {
     /**
      * 次の値に進める
      */
-    public void pref() {
+    public void zoomIn() {
         value--;
         if (value < 0) {
             value = 0;

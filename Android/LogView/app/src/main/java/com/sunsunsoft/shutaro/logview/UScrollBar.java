@@ -19,6 +19,13 @@ enum ScrollBarInOut {
     Out
 }
 
+// スクロールバーのバーの位置設定用
+enum ScrollBarPos {
+    Top,
+    Center,
+    Bottom
+}
+
 /**
  * 自前で描画するスクロールバー
  * タッチ操作あり
@@ -39,19 +46,19 @@ public class UScrollBar {
     private ScrollBarInOut inOut;
 
     private PointF pos = new PointF();
-    private long contentLen;       // コンテンツ領域のサイズ
-    private long pageLen;          // 表示画面のサイズ
-    private long viewPos;
-    private float topPos;         // スクロールの現在の位置
-    private boolean isDraging;
     private PointF parentPos;
+    private int bgColor, barColor;
+    private boolean isDraging;
 
+    // スクリーン座標系
     private int bgLength, bgWidth;
-
     private float barPos;        // バーの座標（縦ならy,横ならx)
     private int barLength;       // バーの長さ(縦バーなら高さ、横バーなら幅)
 
-    private int bgColor, barColor;
+    // コンテンツ座標系
+    private long contentLen;       // コンテンツ領域のサイズ
+    private long pageLen;          // 表示画面のサイズ
+    private long topPos;         // スクロールの現在の位置
 
     // 縦のスクロールバーか
     private boolean isVertical() {
@@ -195,23 +202,41 @@ public class UScrollBar {
      * ※外部のスクロールを反映させる
      * @param topPos
      */
-    public void updateScroll(PointF topPos) {
-        float _pos = isVertical() ? topPos.y : topPos.x;
+    public void updateScroll(PointL topPos) {
+        long _pos = isVertical() ? topPos.y : topPos.x;
         barPos = (_pos / (float)contentLen) * bgLength;
         this.topPos = _pos;
     }
 
-    public void updateScroll(float topPos) {
+    public void updateBarPos() {
         barPos = (topPos / (float)contentLen) * bgLength;
-        this.topPos = topPos;
+    }
+
+    /**
+     * バーの位置を設定する
+     */
+    public long setBarPos(ScrollBarPos pos) {
+        switch(pos) {
+            case Top:
+                topPos = 0;
+                break;
+            case Center:
+                topPos = (contentLen - pageLen) / 2;
+                break;
+            case Bottom:
+                topPos = contentLen - pageLen;
+                break;
+        }
+        updateBarPos();
+        return topPos;
     }
 
     /**
      * バーの座標からスクロール量を求める
      * updateScrollの逆バージョン
      */
-    public void updateScrollByBarPos() {
-        topPos = (barPos / bgLength) * contentLen;
+    private void updateScrollByBarPos() {
+        topPos = (long)((barPos / bgLength) * contentLen);
     }
 
     /**
@@ -287,7 +312,7 @@ public class UScrollBar {
         if (topPos < 0) {
             topPos = 0;
         }
-        updateScroll(topPos);
+        updateBarPos();
     }
 
     /**
@@ -298,7 +323,7 @@ public class UScrollBar {
         if (topPos + pageLen > contentLen) {
             topPos = contentLen - pageLen;
         }
-        updateScroll(topPos);
+        updateBarPos();
     }
 
     /**
