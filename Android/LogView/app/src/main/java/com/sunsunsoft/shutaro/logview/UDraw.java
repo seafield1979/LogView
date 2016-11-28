@@ -242,11 +242,11 @@ public class UDraw {
                 x = x - size.width / 2;
                 break;
             case CenterY:
-                y = y - size.height / 2;
+//                y = y + size.height / 2;
                 break;
             case Center:
                 x = x - size.width / 2;
-                y = y - size.height / 2;
+//                y = y + size.height / 2;
                 break;
         }
 

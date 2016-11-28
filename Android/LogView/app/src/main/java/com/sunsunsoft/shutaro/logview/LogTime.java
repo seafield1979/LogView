@@ -28,4 +28,11 @@ public class LogTime {
     public Double doubleValue() {
         return (double)time / (double)NANO_TO_SEC;
     }
+
+    /**
+     * nano sec -> sec
+     */
+    public static Double longToDouble(long time) {
+        return (double)time / (double)NANO_TO_SEC;
+    }
 }

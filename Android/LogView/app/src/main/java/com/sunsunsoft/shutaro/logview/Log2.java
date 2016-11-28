@@ -100,15 +100,7 @@ public class Log2 extends RealmObject implements LogBase{
         return "id:" + id + " type:" + logType +
                 " logId:" + logId +
                 " areaType:" + areaType + " " +
-                "time:" + getFloatTime() +  " " + text;
-    }
-
-    /**
-     * 浮動小数点型の時間を取得する
-     * @return
-     */
-    public double getFloatTime() {
-        return (double)time / (double)DIVISOR;
+                "time:" + LogBuffer.longToDouble(time) +  " " + text;
     }
 
 }

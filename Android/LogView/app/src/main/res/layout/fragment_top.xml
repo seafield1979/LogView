@@ -15,27 +15,34 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:id="@+id/button"/>
+            android:id="@+id/buttonPoint"/>
         <Button
             android:text="text"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:id="@+id/button2"/>
+            android:id="@+id/buttonText"/>
 
         <Button
             android:text="area"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:id="@+id/button3"/>
+            android:id="@+id/buttonArea"/>
 
         <Button
             android:text="show all"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:id="@+id/button4"/>
+            android:id="@+id/buttonShow"/>
+
+        <Button
+            android:text="clear"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:id="@+id/buttonClear"/>
 
     </LinearLayout>
 

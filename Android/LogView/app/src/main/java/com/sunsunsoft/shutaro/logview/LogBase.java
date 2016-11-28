@@ -50,5 +50,5 @@ interface LogBase {
      * 浮動小数点型の時間を取得する
      * @return
      */
-    double getFloatTime();
+    long getTime();
 }

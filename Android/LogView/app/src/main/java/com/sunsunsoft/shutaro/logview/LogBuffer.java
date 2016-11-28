@@ -22,8 +22,8 @@ abstract public class LogBuffer {
     public static final String TAG = "LogStack";
 
     // switchs
-    protected static final boolean ClearLogsAfterShow = true;
-    protected static final boolean ResetStartTimeAfterShow = true;
+    protected static final boolean ClearLogsAfterShow = false;
+    protected static final boolean ResetStartTimeAfterShow = false;
 
     // 指定可能なバッファのサイズの最大値
     protected static final int LOG_MAX = 100000;

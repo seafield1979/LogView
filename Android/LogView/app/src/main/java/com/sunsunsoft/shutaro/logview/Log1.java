@@ -79,11 +79,11 @@ public class Log1 implements LogBase {
         return "id:" + id + " type:" + logType +
                 " logId:" + logId +
                 " areaType:" + areaType + " " +
-                "time:" + getFloatTime() +  " " + text;
+                "time:" + LogBuffer.longToDouble(time) +  " " + text;
     }
 
-    public double getFloatTime()
+    public long getTime()
     {
-        return (double)time / (double)DIVISOR;
+        return time;
     }
 }

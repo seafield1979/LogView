@@ -49,26 +49,26 @@ public class Log2Dao {
      * 一番時間が早いログを取得
      * @return
      */
-    public LogTime selectMinLogTime() {
+    public long selectMinLogTime() {
         RealmResults<Log2> results = mRealm.where(Log2.class)
                 .findAll();
-        if (results == null || results.size() == 0) return new LogTime(0);
+        if (results == null || results.size() == 0) return 0;
 
         Number min = results.min("time");
-        return new LogTime(min.longValue());
+        return min.longValue();
     }
 
     /**
      * 時間が一番遅いログを取得
      * @return
      */
-    public LogTime selectMaxLogTime() {
+    public long selectMaxLogTime() {
         RealmResults<Log2> results = mRealm.where(Log2.class)
                 .findAll();
-        if (results == null || results.size() == 0) return new LogTime(0);
+        if (results == null || results.size() == 0) return 0;
 
         Number max = results.max("time");
-        return new LogTime(max.longValue());
+        return max.longValue();
     }
 
     /**

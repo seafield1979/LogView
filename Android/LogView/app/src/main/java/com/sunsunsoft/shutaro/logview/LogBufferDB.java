@@ -50,7 +50,7 @@ public class LogBufferDB extends LogBuffer {
 
         topId++;
 
-        return log;//RealmManager.getLogViewDao().toChangeable(log);
+        return log;
     }
 
     /**
@@ -65,6 +65,8 @@ public class LogBufferDB extends LogBuffer {
      */
     public void clearLog() {
         RealmManager.getLogViewDao().clear();
+        topId = 0;
+        startTime = System.nanoTime();
     }
 
     /**

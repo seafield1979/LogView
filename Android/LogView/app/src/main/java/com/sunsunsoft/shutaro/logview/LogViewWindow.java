@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.view.View;
 
 import java.util.List;
@@ -51,25 +52,22 @@ public class LogViewWindow extends UWindow {
     private PixelPerTime pixelPerTime = PixelPerTime.Micro1000;
 
     // ログエリアの最初の時間（一番最初のログの時間）
-    private LogTime startTime;
+    private long startTime;
 
     // ログエリアの最後の時間（一番最後のログの時間）
-    private LogTime endTime;
+    private long endTime;
 
     // コンテンツエリアのサイズ(ピクセル数)
     private long contentLen;
 
     // 表示エリアの先頭位置の時間
-    private LogTime topPosTime;
+    private long topPosTime;
 
     // 表示エリアの終端位置の時間
-    private LogTime endPosTime;
+//    private long endPosTime;
 
     // 表示領域1ページ分の時間
-    private LogTime pageTime;
-
-    // 表示エリアの先頭位置
-    private LogTime topPos;
+    private long pageTime;
 
     /**
      * Get/Set
@@ -87,25 +85,7 @@ public class LogViewWindow extends UWindow {
         mParentView = parentView;
         mContext = context;
         mLogBuf = logBuf;
-
-        startTime = topPosTime = RealmManager.getLogViewDao().selectMinLogTime();
-        endTime =  RealmManager.getLogViewDao().selectMaxLogTime();
-
-        endPosTime = new LogTime(topPosTime.longValue() + height * pixelPerTime.getDivValue());
-
-        contentLen = (endTime.longValue() - startTime.longValue()) / pixelPerTime.getDivValue();
-
-        pageTime = new LogTime(height * pixelPerTime.getDivValue());
-
-        contentSize.height = (int)contentLen;
-        contentTop.y = mScrollBarV.updateContent(contentSize);
-
-        if (true) {
-            ULog.print(TAG, "startTime:" + startTime.doubleValue());
-            ULog.print(TAG, "endTime:" + endTime.doubleValue());
-            ULog.print(TAG, "contentLen:" + contentLen);
-            ULog.print(TAG, "pageTime:" + pageTime.doubleValue());
-        }
+        refreshLogs();
     }
 
     /**
@@ -126,9 +106,48 @@ public class LogViewWindow extends UWindow {
         return instance;
     }
 
-
     /**
      * Methods
+     */
+
+    /**
+     * Public
+     */
+    public void clear() {
+        mLogBuf.clearLog();
+        refreshLogs();
+    }
+
+    /**
+     * LogViewの表示を更新する
+     */
+    private void refreshLogs() {
+        // ログの表示エリアを計算する
+
+        // 最初と最後のログに囲まれた時間内のログを表示する
+        startTime = topPosTime = RealmManager.getLogViewDao().selectMinLogTime();
+        endTime =  RealmManager.getLogViewDao().selectMaxLogTime();
+
+        if (startTime == 0) return;
+
+        // ScrollViewにサイズを設定する
+        contentLen = endTime - startTime;
+        pageTime = getHeight() * pixelPerTime.getDivValue();
+        contentSize.height = contentLen;
+
+        mScrollBarV.setPageLen(pageTime);
+        mScrollBarV.updateContent(contentSize);
+
+        if (true) {
+            ULog.print(TAG, "startTime:" + LogBuffer.longToDouble(startTime));
+            ULog.print(TAG, "endTime:" + LogBuffer.longToDouble(endTime));
+            ULog.print(TAG, "contentLen:" + contentLen);
+            ULog.print(TAG, "pageTime:" + pageTime);
+        }
+    }
+
+    /**
+     * Private
      */
 
     /**
@@ -137,50 +156,60 @@ public class LogViewWindow extends UWindow {
     public void drawContent(Canvas canvas, Paint paint) {
         if (!isShow) return;
 
-        // 表示領域に含まれるログを取得
-        List<LogBase> logs = RealmManager.getLogViewDao()
-                .selectByAreaTime(startTime.longValue(), endTime.longValue());
-
         // BG
         UDraw.drawRectFill(canvas, paint, rect, BG_COLOR);
 
-        //        for (LogBase log : logs) {
-//            // 表示座標を求める
-//            Double _time = log.getFloatTime() - startTime;
-//
-//        }
+        if (startTime == 0) {
+            return;
+        }
+
+        // 表示領域に含まれるログを取得
+        List<LogBase> logs = RealmManager.getLogViewDao()
+                .selectByAreaTime(topPosTime, topPosTime + pageTime);
+
         // BGのラインを描画
-        float x = 50, y = 50, endY = (float)getHeight();
+        float x = 150, y, topY = 50, endY = (float)getHeight();
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.WHITE);
         paint.setStrokeWidth(2);
 
-        canvas.drawLine(x, y, x, endY, paint);
+        canvas.drawLine( x, topY, x, endY, paint);
+
+        topPosTime = startTime + (long)mScrollBarV.getTopPos();
 
         // タイムバー
         // 最初のメモリの時間を計算する
         long p2t = pixelPerTime.getDivValue();
         TimeUnit timeUnit = pixelPerTime.getTimeUnit();
-        double hoge = (startTime.longValue() + p2t * 100) / (p2t * 100);
-        long memNext = (int)((startTime.longValue() + p2t * 100) / (p2t * 100));
-        LogTime memTime = new LogTime(memNext * p2t * 100 - startTime.longValue());
+        long memNext = (topPosTime + p2t * 100) / (p2t * 100);
+        long memTime = memNext * p2t * 100;
 
-        ULog.print(TAG, "time:" + memTime.doubleValue());
+        while(memTime < topPosTime + pageTime) {
+            y = topY + (memTime - topPosTime) / p2t;
+            canvas.drawLine(x -20, y , x, y, paint);
 
+            // テキスト
+            String value = String.format("%d", memTime / timeUnit.divValue());
+            String text = "" + value + " " + timeUnit.unitStr();
 
-        while(memTime.longValue() < pageTime.longValue()) {
-            y = memTime.longValue() / p2t;
-            canvas.drawLine(x - 30, y , x, y, paint);
+            UDraw.drawTextOneLine(canvas, paint, text, UDraw.UAlignment.None, 30, x-150, y,
+                    Color
+                    .WHITE);
 
-            memTime = new LogTime(memTime.longValue() + p2t * 100);
+            memTime += p2t * 100;
         }
+
+
+        // ログを表示
+        for (LogBase log : logs) {
+            // 表示座標を求める
+            y = topY + (log.getTime() - topPosTime) / p2t;
+
+            UDraw.drawCircleFill(canvas, paint, new PointF(x + 200, y), 30, Color.RED);
+        }
+
     }
-
-    private void drawBG(double topPosTime) {
-
-    }
-
 
 
     /**
@@ -206,6 +235,10 @@ public class LogViewWindow extends UWindow {
     public boolean touchEvent(ViewTouch vt) {
         if (!isShow) return false;
 
+        if (super.touchEvent(vt)) {
+            return true;
+        }
+
         // 範囲外なら除外
         if (!(rect.contains((int)vt.getX(), (int)vt.getY()))) {
             return false;
@@ -219,5 +252,12 @@ public class LogViewWindow extends UWindow {
         }
 
         return true;
+    }
+
+    /**
+     * UScrollbar
+     */
+    public void UScrollBarScrolled(UScrollBar scrollbar) {
+        topPosTime = startTime + (long)scrollbar.getTopPos();
     }
 }

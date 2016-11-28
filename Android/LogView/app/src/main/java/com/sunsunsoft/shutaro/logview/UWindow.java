@@ -3,6 +3,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.util.Log;
 
 
 /**
@@ -16,7 +17,7 @@ interface UWindowCallbacks {
  * Viewの中に表示できるWindow
  * 座標、サイズを持ち自由に配置が行える
  */
-abstract public class UWindow extends UDrawable implements UButtonCallbacks{
+abstract public class UWindow extends UDrawable implements UButtonCallbacks {
     /**
      * Enums
      */
@@ -43,8 +44,8 @@ abstract public class UWindow extends UDrawable implements UButtonCallbacks{
     /**
      * Get/Set
      */
-    protected Size contentSize = new Size();     // 領域全体のサイズ
-    protected Size clientSize = new Size();      // ウィンドウの幅からスクロールバーのサイズを引いたサイズ
+    protected SizeL contentSize = new SizeL();     // 領域全体のサイズ
+    protected SizeL clientSize = new SizeL();      // ウィンドウの幅からスクロールバーのサイズを引いたサイズ
     protected PointF contentTop = new PointF();  // 画面に表示する領域の左上の座標
     protected UScrollBar mScrollBarH;
     protected UScrollBar mScrollBarV;
@@ -144,10 +145,12 @@ abstract public class UWindow extends UDrawable implements UButtonCallbacks{
         updateRect();
 
         // ScrollBar
-        mScrollBarV = new UScrollBar(ScrollBarType.Right, ScrollBarInOut.In, this.pos, width, height, SCROLL_BAR_W, contentSize.height);
+        mScrollBarV = new UScrollBar(ScrollBarType.Right, ScrollBarInOut.In,
+                this.pos, width, height, SCROLL_BAR_W, height, contentSize.height);
         mScrollBarV.setBgColor(Color.rgb(128, 128, 128));
 
-        mScrollBarH = new UScrollBar(ScrollBarType.Bottom, ScrollBarInOut.In, this.pos, width, height, SCROLL_BAR_W, contentSize.height);
+        mScrollBarH = new UScrollBar(ScrollBarType.Bottom, ScrollBarInOut.In,
+                this.pos, width, height, SCROLL_BAR_W, width, contentSize.height);
         mScrollBarH.setBgColor(Color.rgb(128, 128, 128));
 
         // 描画オブジェクトに登録する
@@ -366,5 +369,12 @@ abstract public class UWindow extends UDrawable implements UButtonCallbacks{
     }
     public boolean UButtonLongClick(int id) {
         return false;
+    }
+
+    /**
+     * UScrollBarCallbacks
+     */
+    public void UScrollBarScrolled(UScrollBar scrollbar) {
+        Log.d("mylog", "");
     }
 }
