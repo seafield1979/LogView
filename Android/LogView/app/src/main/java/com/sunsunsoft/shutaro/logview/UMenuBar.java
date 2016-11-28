@@ -11,13 +11,21 @@ import android.view.View;
 // メニューバーのトップ項目
 enum TopMenu {
     Play,
-    ZoomIn,
-    ZoomOut
+    Log,
+    Zoom
 }
 
 // メニューをタッチした時に返されるID
 enum MenuItemId {
     Play,
+
+    LogTop,
+    AddLogPoint,
+    AddLogText,
+    AddLogArea,
+    ClearLogs,
+
+    ZoomTop,
     ZoomIn,
     ZoomOut
 }
@@ -80,9 +88,22 @@ public class UMenuBar extends UWindow {
      * メニューバーを初期化
      */
     private void initMenuBar() {
-        addTopMenuItem(TopMenu.Play, MenuItemId.Play, R.drawable.hogeman);
-        addTopMenuItem(TopMenu.ZoomIn, MenuItemId.ZoomIn, R.drawable.hogeman);
-        addTopMenuItem(TopMenu.ZoomOut, MenuItemId.ZoomOut, R.drawable.hogeman);
+        UMenuItem parent;
+
+        // Play & Stop
+        parent = addTopMenuItem(TopMenu.Play, MenuItemId.Play, R.drawable.hogeman);
+
+        // Log
+        parent = addTopMenuItem(TopMenu.Log, MenuItemId.LogTop, R.drawable.hogeman);
+        addMenuItem(parent, MenuItemId.AddLogPoint, R.drawable.hogeman2);
+        addMenuItem(parent, MenuItemId.AddLogText, R.drawable.hogeman2);
+        addMenuItem(parent, MenuItemId.AddLogArea, R.drawable.hogeman2);
+        addMenuItem(parent, MenuItemId.ClearLogs, R.drawable.hogeman2);
+
+        // Zoom
+        parent = addTopMenuItem(TopMenu.Zoom, MenuItemId.ZoomTop, R.drawable.hogeman);
+        addMenuItem(parent, MenuItemId.ZoomIn, R.drawable.hogeman2);
+        addMenuItem(parent, MenuItemId.ZoomOut, R.drawable.hogeman2);
 
         mDrawList = UDrawManager.getInstance().addDrawable(this);
         updateBGSize();

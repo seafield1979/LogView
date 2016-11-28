@@ -28,6 +28,18 @@ public class Log1 implements LogBase {
     /**
      * Get/Set
      */
+    public LogType _getType() {
+        return type;
+    }
+    public LogId _getLogId() {
+        return logId;
+    }
+    public LogAreaType _getAreaType() {
+        return areaType;
+    }
+    public String getText() {
+        return text;
+    }
 
     /**
      * Constructor

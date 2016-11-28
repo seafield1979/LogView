@@ -6,11 +6,30 @@ package com.sunsunsoft.shutaro.logview;
 
 public enum LogType {
     Point,
+    Text,
     Area,
-    Block
+    ;
+
+    public static LogType toEnum(int value) {
+        for (LogType id : values()) {
+            if (id.ordinal() == value) {
+                return id;
+            }
+        }
+        return Point;
+    }
 }
 
 enum LogAreaType {
     Start,
     End
+    ;
+    public static LogAreaType toEnum(int value) {
+        for (LogAreaType id : values()) {
+            if (id.ordinal() == value) {
+                return id;
+            }
+        }
+        return Start;
+    }
 }

@@ -43,6 +43,7 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
     // サイズ更新用
     private boolean isFirst = true;
 
+    private boolean logTypeSwitch = false;
 
     /**
      * Get/Set
@@ -187,6 +188,33 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
     {
         switch (id) {
             case Play:
+                break;
+            case AddLogPoint:
+                getLogBuf().addPointLog(LogId.Log1, System.nanoTime());
+                updateView();
+                invalidate();
+                break;
+            case AddLogText:
+                getLogBuf().addTextLog(LogId.Log2, System.nanoTime(), "hoge");
+                updateView();
+                invalidate();
+                break;
+            case AddLogArea: {
+                LogAreaType areaType = LogAreaType.Start;
+                if (!logTypeSwitch) {
+                    areaType = LogAreaType.End;
+                }
+                logTypeSwitch = !logTypeSwitch;
+
+                getLogBuf().addAreaLog(LogId.Log3, areaType, System.nanoTime());
+
+                updateView();
+                invalidate();
+            }
+                break;
+            case ClearLogs:
+                clear();
+                invalidate();
                 break;
             case ZoomIn:
                 mLogViewWin.zoomIn();

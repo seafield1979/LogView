@@ -27,10 +27,11 @@ interface LogBase {
     /**
      * Get/Set
      */
-
-    /**
-     * Constructor
-     */
+    // RealmオブジェクトではEnumを扱えないのでデフォルトのGetterの名前から変えてある
+    LogType _getType();
+    LogId _getLogId();
+    LogAreaType _getAreaType();
+    String getText();
 
     /**
      * Methods

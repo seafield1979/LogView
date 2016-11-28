@@ -23,7 +23,6 @@ public class Log2 extends RealmObject implements LogBase{
     private long time;      // 1 = 1 nano sec
     private int type;       // LogType
     private int logId;      // LogId
-    private int logType;    // LogType
     private int areaType;   // LogAreaType
     private String text;
 
@@ -70,14 +69,6 @@ public class Log2 extends RealmObject implements LogBase{
         this.logId = logId;
     }
 
-    public int getLogType() {
-        return logType;
-    }
-
-    public void setLogType(int logType) {
-        this.logType = logType;
-    }
-
     public int getAreaType() {
         return areaType;
     }
@@ -85,6 +76,17 @@ public class Log2 extends RealmObject implements LogBase{
     public void setAreaType(int areaType) {
         this.areaType = areaType;
     }
+
+    public LogType _getType() {
+        return LogType.toEnum(type);
+    }
+    public LogId _getLogId() {
+        return LogId.toEnum(logId);
+    }
+    public LogAreaType _getAreaType() {
+        return LogAreaType.toEnum(areaType);
+    }
+
 
     /**
      * ログをコンソールに出力する
@@ -97,10 +99,9 @@ public class Log2 extends RealmObject implements LogBase{
      * ログをStringに変換する
      */
     public String toString() {
-        return "id:" + id + " type:" + logType +
+        return "id:" + id + " type:" + type +
                 " logId:" + logId +
                 " areaType:" + areaType + " " +
                 "time:" + LogBuffer.longToDouble(time) +  " " + text;
     }
-
 }

@@ -62,11 +62,11 @@ abstract public class LogBuffer {
     }
 
     public LogBase addTextLog(LogId id, long time, String text) {
-        return this.addLog(LogType.Point, null, id, time, text);
+        return this.addLog(LogType.Text, null, id, time, text);
     }
 
     public LogBase addAreaLog(LogId id, LogAreaType areaType, long time) {
-        return this.addLog(LogType.Point, areaType, id, time, null);
+        return this.addLog(LogType.Area, areaType, id, time, null);
     }
 
     abstract public LogBase addLog(LogType type, LogAreaType areaType, LogId id, long time, String

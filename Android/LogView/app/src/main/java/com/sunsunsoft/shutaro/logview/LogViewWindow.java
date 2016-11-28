@@ -210,7 +210,22 @@ public class LogViewWindow extends UWindow {
             // 表示座標を求める
             y = topY + (log.getTime() - topPosTime) / p2t;
 
-            UDraw.drawCircleFill(canvas, paint, new PointF(x + 200, y), 30, Color.RED);
+            switch (log._getType()) {
+                case Point:
+                    UDraw.drawCircleFill(canvas, paint, new PointF(x + 200, y),
+                            30, log._getLogId().getColor());
+                    break;
+                case Text:
+                    UDraw.drawCircleFill(canvas, paint, new PointF(x + 200, y),
+                            30, log._getLogId().getColor());
+                    UDraw.drawTextOneLine(canvas, paint, log.getText(), UDraw.UAlignment.None,
+                            30, x + 200 + 35, y + 5, Color.WHITE);
+                    break;
+                case Area:
+//                    UDraw.drawRectFill(canvas, paint, new PointF(x + 200, y),
+//                            30, log._getLogId().getColor());
+                    break;
+            }
         }
 
     }

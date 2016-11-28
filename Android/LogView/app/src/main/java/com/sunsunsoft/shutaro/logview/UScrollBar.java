@@ -37,7 +37,11 @@ enum ScrollBarPos {
  *  指定のViewに張り付くように配置
  */
 public class UScrollBar {
+    /**
+     * Constants
+     */
     public static final String TAG = "UScrollBar";
+    private static final int MIN_BAR_LEN = 70;
 
     /**
      * Membar Variables
@@ -102,6 +106,7 @@ public class UScrollBar {
     public void setPageLen(long pageLen) {
         this.pageLen = pageLen;
     }
+
 
     /**
      * コンストラクタ
@@ -264,24 +269,34 @@ public class UScrollBar {
         float baseX = pos.x + parentPos.x;
         float baseY = pos.y + parentPos.y;
 
+        // バーは一定以下の長さの場合はある程度の長さに補正する
+        float _barPos = barPos;
+        float _barLen = barLength;
+        if (barLength < MIN_BAR_LEN) {
+            _barPos = barPos - MIN_BAR_LEN / 2;
+            _barLen = MIN_BAR_LEN;
+        }
+
         if (isHorizontal()) {
             bgRect.left = baseX;
             bgRect.right = baseX + bgLength;
             bgRect.top = baseY;
             bgRect.bottom = baseY + bgWidth;
-            barRect.left = baseX + barPos;
+
+            barRect.left = baseX + _barPos;
             barRect.top = baseY + 10;
-            barRect.right = baseX + barPos + barLength;
+            barRect.right = baseX + _barPos + _barLen;
             barRect.bottom = baseY + bgWidth - 10;
         } else {
             bgRect.left = baseX;
             bgRect.top = baseY;
             bgRect.right = baseX + bgWidth;
             bgRect.bottom = baseY + bgLength;
+
             barRect.left = baseX + 10;
-            barRect.top = baseY + barPos;
+            barRect.top = baseY + _barPos;
             barRect.right = baseX + bgWidth - 10;
-            barRect.bottom =baseY + barPos + barLength;
+            barRect.bottom =baseY + _barPos + _barLen;
         }
 
         // 背景
@@ -296,10 +311,8 @@ public class UScrollBar {
         // バー
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(barColor);
-        canvas.drawRect(barRect.left,
-                barRect.top,
-                barRect.right,
-                barRect.bottom,
+        canvas.drawRoundRect(barRect,
+                10, 10,
                 paint);
     }
 
@@ -376,16 +389,23 @@ public class UScrollBar {
         float ex = vt.touchX() - parentPos.x;
         float ey = vt.touchY() - parentPos.y;
 
+        float _barPos = barPos;
+        float _barLen = barLength;
+        if (barLength < MIN_BAR_LEN) {
+            _barPos = barPos - MIN_BAR_LEN / 2;
+            _barLen = MIN_BAR_LEN;
+        }
+
         if (isVertical()) {
             if (pos.x <= ex && ex < pos.x + bgWidth &&
                     pos.y <= ey && ey < pos.y + bgLength)
             {
-                if (ey < barPos) {
+                if (ey < _barPos) {
                     // 上にスクロール
                     ULog.print(TAG, "Scroll Up");
                     scrollUp();
                     return true;
-                } else if (ey > pos.y + barPos + barLength) {
+                } else if (ey > pos.y + _barPos + _barLen) {
                     // 下にスクロール
                     ULog.print(TAG, "Scroll Down");
                     scrollDown();
@@ -401,12 +421,12 @@ public class UScrollBar {
             if (pos.x <= ex && ex < pos.x + bgLength &&
                     pos.y <= ey && ey < pos.y + bgWidth)
             {
-                if (ex < barPos) {
+                if (ex < _barPos) {
                     // 上にスクロール
                     ULog.print(TAG, "Scroll Up");
                     scrollUp();
                     return true;
-                } else if (ex > pos.x + barPos + barLength) {
+                } else if (ex > pos.x + _barPos + _barLen) {
                     // 下にスクロール
                     ULog.print(TAG, "Scroll Down");
                     scrollDown();
