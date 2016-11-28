@@ -35,15 +35,62 @@ public class Log2Dao {
      * 全要素取得
      * @return nameのString[]
      */
-    public List<Log2> selectAll() {
+    public List<LogBase> selectAll() {
         RealmResults<Log2> results = mRealm.where(Log2.class).findAll();
-        LinkedList<Log2> list = new LinkedList<>();
+        LinkedList<LogBase> list = new LinkedList<>();
         for (Log2 log : results) {
             list.add(log);
         }
 
         return list;
     }
+
+    /**
+     * 一番時間が早いログを取得
+     * @return
+     */
+    public LogTime selectMinLogTime() {
+        RealmResults<Log2> results = mRealm.where(Log2.class)
+                .findAll();
+        if (results == null || results.size() == 0) return new LogTime(0);
+
+        Number min = results.min("time");
+        return new LogTime(min.longValue());
+    }
+
+    /**
+     * 時間が一番遅いログを取得
+     * @return
+     */
+    public LogTime selectMaxLogTime() {
+        RealmResults<Log2> results = mRealm.where(Log2.class)
+                .findAll();
+        if (results == null || results.size() == 0) return new LogTime(0);
+
+        Number max = results.max("time");
+        return new LogTime(max.longValue());
+    }
+
+    /**
+     * 2点間の領域に含まれるログを取得する
+     * @param start
+     * @param end
+     * @return
+     */
+    public List<LogBase> selectByAreaTime(long start, long end) {
+        RealmResults<Log2> results = mRealm.where(Log2.class)
+                .between("time", start, end)
+                .findAll();
+
+        // Log2 -> LogBase に変換
+        LinkedList<LogBase> list = new LinkedList<>();
+        for (Log2 log : results) {
+            list.add(log);
+        }
+
+        return list;
+    }
+
 
     /**
      * 要素を追加 Log2オブジェクトをそのまま追加

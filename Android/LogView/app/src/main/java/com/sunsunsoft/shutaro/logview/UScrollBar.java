@@ -36,7 +36,7 @@ public class UScrollBar {
     private ScrollBarInOut inOut;
 
     private PointF pos = new PointF();
-    private int contentLen;       // コンテンツ領域のサイズ
+    private long contentLen;       // コンテンツ領域のサイズ
     private int viewLen;          // 表示画面のサイズ
     private float topPos;         // スクロールの現在の位置
     private boolean isDraging;

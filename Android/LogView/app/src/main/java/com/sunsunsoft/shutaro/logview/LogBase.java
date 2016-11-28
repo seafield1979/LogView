@@ -19,7 +19,6 @@ interface LogBase {
     // Nano Sec からSecに変換するための割り算の分母
     int DIVISOR = 1000000000;
 
-
     /**
      * Static Variables
      */

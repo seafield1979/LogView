@@ -81,4 +81,12 @@ abstract public class LogBuffer {
      * show all logs
      */
     abstract public void showAllLog();
+
+    /**
+     * long型の時間(nano sec)をDouble型の時間(sec)に変換する
+     */
+    public static double longToDouble(long time) {
+        return (double)time / (double)LogBase.DIVISOR;
+    }
+
 }

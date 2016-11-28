@@ -73,8 +73,8 @@ public class LogBufferDB extends LogBuffer {
     public void showAllLog() {
         ULog.print(TAG, "+ showAllLog +");
 
-        List<Log2> logs = RealmManager.getLogViewDao().selectAll();
-        for (Log2 log : logs) {
+        List<LogBase> logs = RealmManager.getLogViewDao().selectAll();
+        for (LogBase log : logs) {
             log.dispLog();
         }
 
@@ -85,5 +85,11 @@ public class LogBufferDB extends LogBuffer {
         if (ResetStartTimeAfterShow) {
             startTime = System.nanoTime();
         }
+    }
+
+    public List<LogBase> getAllLogs() {
+        List<LogBase> logs = RealmManager.getLogViewDao().selectAll();
+
+        return logs;
     }
 }

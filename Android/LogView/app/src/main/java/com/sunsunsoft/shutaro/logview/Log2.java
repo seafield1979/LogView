@@ -110,4 +110,5 @@ public class Log2 extends RealmObject implements LogBase{
     public double getFloatTime() {
         return (double)time / (double)DIVISOR;
     }
+
 }

@@ -21,6 +21,9 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
         Log
     }
 
+
+    private LogBufferDB logBuf = LogBufferDB.getInstance();
+
     // クリック判定の仕組み
     private ViewTouch vt = new ViewTouch(this);
 
@@ -53,6 +56,9 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
         mContext = context;
     }
 
+    public LogBufferDB getLogBuf() {
+        return logBuf;
+    }
 
     /**
      * 画面に表示するWindowを生成する
@@ -65,7 +71,7 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
 
         // LogViewWindow
         if (mLogViewWin == null) {
-            mLogViewWin = LogViewWindow.createInstance(getContext(), this,
+            mLogViewWin = LogViewWindow.createInstance(getContext(), this, logBuf,
                     0, 0, getWidth(), getHeight());
         }
 

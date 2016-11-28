@@ -22,6 +22,7 @@ public class ULog {
         setEnable(UDrawManager.TAG, false);
         setEnable(UMenuBar.TAG, false);
         setEnable(ViewTouch.TAG, false);
+        setEnable(UScrollBar.TAG, false);
     }
 
     // ログ出力

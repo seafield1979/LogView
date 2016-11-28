@@ -27,8 +27,6 @@ public class FragmentTop extends Fragment implements OnClickListener{
     //private LogBufferList logBuf = new LogBufferList(LOG_MAX);
     private LogView logView;
 
-    private LogBufferDB logBuf = LogBufferDB.getInstance();
-
     private boolean logTypeSwitch = false;
 
     public FragmentTop() {
@@ -58,22 +56,22 @@ public class FragmentTop extends Fragment implements OnClickListener{
         LogBase log = null;
         switch(view.getId()) {
             case R.id.button:
-                logBuf.addPointLog(LogId.Log1, System.nanoTime())
+                logView.getLogBuf().addPointLog(LogId.Log1, System.nanoTime())
                         .dispLog();
 
                 break;
             case R.id.button2:
-                logBuf.addTextLog(LogId.Log1, System.nanoTime(), "button2")
+                logView.getLogBuf().addTextLog(LogId.Log1, System.nanoTime(), "button2")
                         .dispLog();
                 break;
             case R.id.button3: {
                 LogAreaType areaType = logTypeSwitch ? LogAreaType.End : LogAreaType.Start;
-                logBuf.addAreaLog(LogId.Log1, areaType, System.nanoTime())
+                logView.getLogBuf().addAreaLog(LogId.Log1, areaType, System.nanoTime())
                         .dispLog();
             }
                 break;
             case R.id.button4:
-                logBuf.showAllLog();
+                logView.getLogBuf().showAllLog();
                 break;
         }
     }
