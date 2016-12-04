@@ -10,7 +10,7 @@ import android.graphics.Rect;
 import java.util.LinkedList;
 
 interface UMenuItemCallbacks {
-    void menuItemClicked(MenuItemId id);
+    void menuItemClicked(MenuItemId id, int stateId);
 }
 
 /**
@@ -34,8 +34,10 @@ public class UMenuItem extends UDrawable {
      */
     protected UMenuBar menuBar;
     protected UMenuItemCallbacks mCallbacks;
-    protected MenuItemId id;
+    protected MenuItemId itemId;
     protected int nestCount;
+    protected int stateId;          // 現在の状態
+    protected int stateMax;         // 状態の最大値 addState で増える
 
     // 親アイテム
     protected UMenuItem parentItem;
@@ -46,7 +48,7 @@ public class UMenuItem extends UDrawable {
     protected boolean isOpened;
 
     // アイコン用画像
-    protected Bitmap icon;
+    protected LinkedList<Bitmap> icons = new LinkedList<>();
     protected int animeColor;
 
     // 閉じている移動中かどうか
@@ -82,8 +84,12 @@ public class UMenuItem extends UDrawable {
     public UMenuItem(UMenuBar menuBar, MenuItemId id, Bitmap icon) {
         super(DRAW_PRIORITY, 0,0,0,0);
         this.menuBar = menuBar;
-        this.id = id;
-        this.icon = icon;
+        this.itemId = id;
+        this.stateId = 0;
+        this.stateMax = 1;
+        if (icon != null) {
+            this.icons.add(icon);
+        }
     }
 
     public void setParentItem(UMenuItem parentItem) {
@@ -105,6 +111,39 @@ public class UMenuItem extends UDrawable {
         childItems.add(child);
     }
 
+    /**
+     * 状態を追加する
+     * @param icon 追加した状態の場合に表示するアイコン
+     */
+    public void addState(Bitmap icon) {
+        icons.add(icon);
+        stateMax++;
+    }
+
+    /**
+     * 次の状態にすすむ
+     */
+    public int setNextState() {
+        if (stateMax >= 2) {
+            stateId = (stateId + 1) % stateMax;
+        }
+        return stateId;
+    }
+
+    private int getNextStateId() {
+        if (stateMax >= 2) {
+            return (stateId + 1) % stateMax;
+        }
+        return 0;
+    }
+
+
+    /**
+     * 描画処理
+     * @param canvas
+     * @param paint
+     * @param parentPos
+     */
     public void draw(Canvas canvas, Paint paint, PointF parentPos) {
         // スタイル(内部を塗りつぶし)
         paint.setStyle(Paint.Style.FILL);
@@ -115,7 +154,10 @@ public class UMenuItem extends UDrawable {
         drawPos.x = pos.x + parentPos.x;
         drawPos.y = pos.y + parentPos.y;
 
-        if (icon != null) {
+        if (icons.size() > 0) {
+            // 次の状態のアイコンを表示する
+            Bitmap icon = icons.get(getNextStateId());
+
             // アニメーション処理
             // フラッシュする
             if (isAnimating) {
@@ -201,8 +243,10 @@ public class UMenuItem extends UDrawable {
                 ULog.print(TAG, "isOpened " + isOpened);
             } else {
                 // タッチされた時の処理
+                setNextState();
+
                 if (mCallbacks != null) {
-                    mCallbacks.menuItemClicked(id);
+                    mCallbacks.menuItemClicked(itemId, stateId);
                 }
             }
             // アニメーション

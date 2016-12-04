@@ -42,6 +42,9 @@ abstract public class LogBuffer {
     /**
      * Get/Set
      */
+    public long getStartTime(){
+        return startTime;
+    }
 
     /**
      * Constructor

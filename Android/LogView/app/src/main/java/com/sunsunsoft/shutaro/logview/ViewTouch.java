@@ -1,5 +1,6 @@
 package com.sunsunsoft.shutaro.logview;
 
+import android.util.Log;
 import android.view.MotionEvent;
 
 import java.util.Timer;
@@ -206,7 +207,10 @@ public class ViewTouch {
      * @return true:距離内 / false:距離外
      */
     public boolean checkInsideCircle(float vx, float vy, float x, float y, float length) {
-        if ((vx - x) * (vx - x) + (vy - y) * (vy - y) <= length * length) {
+        float distance = (vx - x) * (vx - x) + (vy - y) * (vy - y);
+        if (distance <= length * length) {
+
+            Log.d(TAG, "" + distance + " len:" + (length * length));
             return true;
         }
         return false;

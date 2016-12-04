@@ -1,13 +1,19 @@
 package com.sunsunsoft.shutaro.logview;
 
+import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * LogView本体
@@ -21,6 +27,16 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
         Log
     }
 
+    /**
+     * Constants
+     */
+    public static final String TAG = "LogView";
+    private final int FIRST_PERIOD = 1000;
+    private final int INTERVAL_PERIOD = 1000;
+
+    /**
+     * Member variables
+     */
     private LogBufferDB logBuf = LogBufferDB.getInstance();
 
     // クリック判定の仕組み
@@ -28,6 +44,7 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
 
     private Context mContext;
     private Paint paint = new Paint();
+    private Timer timer;
 
     // Windows
     private UWindow[] mWindows = new UWindow[WindowType.values().length];
@@ -63,6 +80,8 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
         super(context, attrs);
         this.setOnTouchListener(this);
         mContext = context;
+
+        startTimer();
     }
 
     /**
@@ -128,6 +147,8 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
         // アンチエリアシング(境界のぼかし)
         paint.setAntiAlias(true);
 
+        mLogViewWin.update();
+
         // Windowの処理
         // アクション(手前から順に処理する)
         for (int i=mWindows.length - 1; i >= 0; i--) {
@@ -178,15 +199,50 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
     }
 
     /**
+     * View更新用のタイマーを起動する
+     */
+    private void startTimer() {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+        // TimerオブジェクトのscheduleAtFixedRateにTimerTaskオブジェクトを渡す
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask(){
+            @Override
+            public void run() {
+                ((Activity)mContext).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        invalidate();
+                    }
+                });
+            }
+        }, FIRST_PERIOD, INTERVAL_PERIOD);
+    }
+
+    private void stopTimer() {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+    }
+
+    /**
      * Callbacks
      */
     /**
      * UMenuItemCallbacks
      */
-    public void menuItemClicked(MenuItemId id)
+    public void menuItemClicked(MenuItemId id, int stateId)
     {
         switch (id) {
-            case Play:
+            case Play_Stop:
+                if (stateId == 0) {
+                    startTimer();
+                } else {
+                    stopTimer();
+                }
                 break;
             case AddLogPoint:
                 getLogBuf().addPointLog(LogId.Log1, System.nanoTime());

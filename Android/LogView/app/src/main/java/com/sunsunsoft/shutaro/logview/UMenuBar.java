@@ -20,7 +20,7 @@ enum TopMenu {
 
 // メニューをタッチした時に返されるID
 enum MenuItemId {
-    Play,
+    Play_Stop,
 
     // add log
     LogTop,
@@ -65,7 +65,7 @@ public class UMenuBar extends UWindow {
      * Member variables
      */
     private View mParentView;
-    private UMenuItemCallbacks mCallbackClass;
+    private UMenuItemCallbacks mMenuItemCallbacks;
     UMenuItem[] topItems = new UMenuItem[TOP_MENU_MAX];
     UMenuItem[] items = new UMenuItem[MenuItemId.values().length];
     private DrawList mDrawList;
@@ -82,7 +82,7 @@ public class UMenuBar extends UWindow {
     {
         super(null, DRAW_PRIORITY, 0, parentH - MENU_BAR_H, parentW, MENU_BAR_H, bgColor);
         mParentView = parentView;
-        mCallbackClass = callbackClass;
+        mMenuItemCallbacks = callbackClass;
     }
 
     /**
@@ -108,7 +108,10 @@ public class UMenuBar extends UWindow {
         UMenuItem parent;
 
         // Play & Stop
-        parent = addTopMenuItem(TopMenu.Play, MenuItemId.Play, R.drawable.play);
+        parent = addTopMenuItem(TopMenu.Play, MenuItemId.Play_Stop, R.drawable.play);
+
+        Bitmap bmp = BitmapFactory.decodeResource(mParentView.getResources(), R.drawable.stop);
+        parent.addState(bmp);
 
         // Log
         parent = addTopMenuItem(TopMenu.Log, MenuItemId.LogTop, R.drawable.add);
@@ -150,7 +153,7 @@ public class UMenuBar extends UWindow {
     private UMenuItem addTopMenuItem(TopMenu topId, MenuItemId menuId, int bmpId) {
         Bitmap bmp = BitmapFactory.decodeResource(mParentView.getResources(), bmpId);
         UMenuItem item = new UMenuItem(this, menuId, bmp);
-        item.setCallbacks(mCallbackClass);
+        item.setCallbacks(mMenuItemCallbacks);
         item.setShow(true);
 
         topItems[topId.ordinal()] = item;
@@ -171,7 +174,7 @@ public class UMenuBar extends UWindow {
     private UMenuItem addMenuItem(UMenuItem parent, MenuItemId menuId, int bmpId) {
         Bitmap bmp = BitmapFactory.decodeResource(mParentView.getResources(), bmpId);
         UMenuItem item = new UMenuItem(this, menuId, bmp);
-        item.setCallbacks(mCallbackClass);
+        item.setCallbacks(mMenuItemCallbacks);
         item.setParentItem(parent);
         // 子要素は初期状態では非表示。オープン時に表示される
         item.setShow(false);
@@ -223,8 +226,6 @@ public class UMenuBar extends UWindow {
                 if (item.isOpened()) {
                     // 他に開かれたメニューを閉じる
                     closeAllMenu(item);
-                } else {
-
                 }
                 break;
             }

@@ -19,13 +19,12 @@ public class LogViewWindow extends UWindow {
      */
     public static final String TAG = "LogViewWindow";
     private static final int DRAW_PRIORITY = 100;
-
     private static final int TOP_Y = 50;
-
     private static final int BG_COLOR = Color.BLACK;
 
-    // 再描画のインターバル ms
-    private static final int REDRAW_INTERVAL = 1000;
+    // log icons
+    private static final int LOG_W = 20;
+
 
     /**
      * Member Variables
@@ -42,7 +41,7 @@ public class LogViewWindow extends UWindow {
          pixcelPerTime = 1000000 なら 1ピクセルで1ミリ秒(ms)(0.001秒)
          pixcelPerTime = 1000000000 なら 1ピクセルで1秒
       */
-    private PixelPerTime pixelPerTime = PixelPerTime.Micro1000;
+    private PixelPerTime pixelPerTime = PixelPerTime.Milli50;
 
     // ログエリアの最初の時間（一番最初のログの時間）
     private long startTime;
@@ -118,6 +117,10 @@ public class LogViewWindow extends UWindow {
         updateView();
     }
 
+    public void update() {
+        updateView();
+    }
+
     /**
      * LogViewの表示を更新する
      */
@@ -126,7 +129,11 @@ public class LogViewWindow extends UWindow {
 
         // 最初と最後のログに囲まれた時間内のログを表示する
         startTime = RealmManager.getLogViewDao().selectMinLogTime();
-        endTime =  RealmManager.getLogViewDao().selectMaxLogTime();
+        if (true) {
+            endTime = System.nanoTime() - mLogBuf.getStartTime();
+        } else {
+            endTime = RealmManager.getLogViewDao().selectMaxLogTime();
+        }
 
         // 最後のログのあとに少し余白をも持たせる
         endTime += pixelPerTime.getDivValue() * 100;
@@ -142,7 +149,7 @@ public class LogViewWindow extends UWindow {
         mScrollBarV.updateContent(contentSize);
         topPosTime = mScrollBarV.setBarPos(ScrollBarPos.Bottom) + startTime;
 
-        if (true) {
+        if (false) {
             ULog.print(TAG, "startTime:" + LogBuffer.longToDouble(startTime));
             ULog.print(TAG, "endTime:" + LogBuffer.longToDouble(endTime));
             ULog.print(TAG, "contentLen:" + contentLen);
@@ -172,7 +179,7 @@ public class LogViewWindow extends UWindow {
                 .selectByAreaTime(topPosTime, topPosTime + pageTime + 100);
 
         // BGのラインを描画
-        float x = 150, y, topY = TOP_Y, endY = (float)getHeight();
+        float x = 150, y = 0, topY = TOP_Y, endY = (float)getHeight();
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.WHITE);
@@ -204,8 +211,13 @@ public class LogViewWindow extends UWindow {
             memTime += p2t * 100;
         }
 
-
         // ログを表示
+        drawLogs(canvas, paint, logs, x, y, topY, p2t);
+    }
+
+    private void drawLogs(Canvas canvas, Paint paint,
+                          List<LogBase> logs, float x, float y, float topY, long p2t)
+    {
         for (LogBase log : logs) {
             // 表示座標を求める
             y = topY + (log.getTime() - topPosTime) / p2t;
@@ -213,13 +225,13 @@ public class LogViewWindow extends UWindow {
             switch (log._getType()) {
                 case Point:
                     UDraw.drawCircleFill(canvas, paint, new PointF(x + 200, y),
-                            30, log._getLogId().getColor());
+                            LOG_W, log._getLogId().getColor());
                     break;
                 case Text:
                     UDraw.drawCircleFill(canvas, paint, new PointF(x + 200, y),
-                            30, log._getLogId().getColor());
+                            LOG_W, log._getLogId().getColor());
                     UDraw.drawTextOneLine(canvas, paint, log.getText(), UDraw.UAlignment.None,
-                            30, x + 200 + 35, y + 5, Color.WHITE);
+                            LOG_W, x + 200 + 35, y + 5, Color.WHITE);
                     break;
                 case Area:
 //                    UDraw.drawRectFill(canvas, paint, new PointF(x + 200, y),
@@ -229,7 +241,6 @@ public class LogViewWindow extends UWindow {
         }
 
     }
-
 
     /**
      * 毎フレーム行う処理
