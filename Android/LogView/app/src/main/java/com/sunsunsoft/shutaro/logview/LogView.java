@@ -52,7 +52,6 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
         return logBuf;
     }
 
-
     /**
      * Constructor
      */

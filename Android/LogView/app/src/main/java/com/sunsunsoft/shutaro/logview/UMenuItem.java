@@ -9,6 +9,10 @@ import android.graphics.Rect;
 
 import java.util.LinkedList;
 
+interface UMenuItemCallbacks {
+    void menuItemClicked(MenuItemId id);
+}
+
 /**
  * メニューに表示する項目
  * アイコンを表示してタップされたらIDを返すぐらいの機能しか持たない
@@ -44,6 +48,9 @@ public class UMenuItem extends UDrawable {
     // アイコン用画像
     protected Bitmap icon;
     protected int animeColor;
+
+    // 閉じている移動中かどうか
+    protected boolean isClosing;
 
     /**
      * Get/Set
@@ -127,6 +134,8 @@ public class UMenuItem extends UDrawable {
         // 子要素
         if (childItems != null) {
             for (UMenuItem item : childItems) {
+                if (!item.isShow) continue;
+
                 item.draw(canvas, paint, drawPos);
             }
         }
@@ -171,15 +180,14 @@ public class UMenuItem extends UDrawable {
 
     /**
      * クリック処理
-     * @param clickX
-     * @param clickY
+     * @param touchX
+     * @param touchY
      * @return
      */
-    public boolean checkClick(ViewTouch vt, float clickX, float clickY) {
-        if (pos.x <= clickX && clickX <= pos.x + ITEM_W &&
-                pos.y <= clickY && clickY <= pos.y + ITEM_H)
+    public boolean checkTouch(ViewTouch vt, float touchX, float touchY) {
+        if (vt.checkInsideCircle(touchX, touchY, pos.x + ITEM_W / 2, pos.y + ITEM_W / 2, ITEM_W / 2))
         {
-            if (vt.type != TouchType.Click) return false;
+            if (vt.type != TouchType.Touch) return false;
 
             // 子要素を持っていたら Open/Close
             if (childItems != null) {
@@ -207,9 +215,7 @@ public class UMenuItem extends UDrawable {
         if (isOpened() && childItems != null) {
             for (UMenuItem child : childItems) {
                 // この座標系(親原点)に変換
-                float _clickX = clickX - pos.x;
-                float _clickY = clickY - pos.y;
-                if (child.checkClick(vt, _clickX, _clickY)) {
+                if (child.checkTouch(vt, touchX - pos.x, touchY - pos.y)) {
                     return true;
                 }
             }
@@ -229,6 +235,9 @@ public class UMenuItem extends UDrawable {
         for (UMenuItem item : childItems) {
             item.setPos(0, 0);
             // 親の階層により開く方向が変わる
+            item.isClosing = false;
+            item.setShow(true);
+
             if (nestCount == 0) {
                 // 縦方向
                 item.startMovingPos(0, -count * (ITEM_H + CHILD_MARGIN_V), ANIME_FRAME);
@@ -250,6 +259,7 @@ public class UMenuItem extends UDrawable {
 
         for (UMenuItem item : childItems) {
             item.startMovingPos(0, 0, ANIME_FRAME);
+            item.isClosing = true;
             if (item.isOpened) {
                 item.closeMenu();
             }
@@ -267,10 +277,13 @@ public class UMenuItem extends UDrawable {
         // 移動
         if (autoMoving()) {
             allFinished = false;
+        } else if (isClosing) {
+            setShow(false);
         }
+
         // アニメーション
         if (animate()) {
-           allFinished = false;
+            allFinished = false;
         }
 
         // 子要素のdoAction

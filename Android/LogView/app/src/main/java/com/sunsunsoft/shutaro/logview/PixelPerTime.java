@@ -56,79 +56,53 @@ enum PixelPerTime {
      * Enums
      */
     // 変換の種類
-    Nano100(0),
-    Nano250(1),
-    Nano500(2),
-    Nano1000(3),
-    Nano2500(4),
-    Nano5000(5),
-    Micro10(6),
-    Micro25(7),
-    Micro50(8),
-    Micro100(9),
-    Micro250(10),
-    Micro500(11),
-    Micro1000(12),
-    Micro2500(13),
-    Micro5000(14),
-    Milli10(15),
-    Milli25(16),
-    Milli50(17),
-    Milli100(18),
-    Milli250(19),
-    Milli500(20),
-    Milli1000(21),
-    Milli2500(22),
-    Milli5000(23),
-    Sec10(24),
-    Sec25(25),
-    Sec50(26),
-    Sec100(27),
-    Sec250(28),
-    Sec500(29),
-    Sec1000(30)
+    Nano100(0, 100, TimeUnit.Micro),
+    Nano250(1, 250, TimeUnit.Micro),
+    Nano500(2, 500, TimeUnit.Micro),
+    Nano1000(3, 1000, TimeUnit.Micro),
+    Nano2500(4, 2500, TimeUnit.Micro),
+    Nano5000(5, 5000, TimeUnit.Micro),
+    Micro10(6, 10000, TimeUnit.Micro),
+    Micro25(7, 25000, TimeUnit.Milli),
+    Micro50(8, 50000, TimeUnit.Milli),
+    Micro100(9, 100000, TimeUnit.Milli),
+    Micro250(10, 250000, TimeUnit.Milli),
+    Micro500(11, 500000, TimeUnit.Milli),
+    Micro1000(12, 1000000, TimeUnit.Milli),
+    Micro2500(13, 2500000, TimeUnit.Milli),
+    Micro5000(14, 5000000, TimeUnit.Milli),
+    Milli10(15, 10000000, TimeUnit.Milli),
+    Milli25(16, 25000000, TimeUnit.Sec),
+    Milli50(17, 50000000, TimeUnit.Sec),
+    Milli100(18, 100000000, TimeUnit.Sec),
+    Milli250(19, 250000000, TimeUnit.Sec),
+    Milli500(20, 500000000, TimeUnit.Sec),
+    Milli1000(21, 1000000000, TimeUnit.Sec),
+    Milli2500(22, 2500000000L, TimeUnit.Sec),
+    Milli5000(23, 5000000000L, TimeUnit.Sec),
+    Sec10(24, 10000000000L, TimeUnit.Sec),
+    Sec25(25, 25000000000L, TimeUnit.Sec),
+    Sec50(26, 50000000000L, TimeUnit.Sec),
+    Sec100(27, 100000000000L, TimeUnit.Sec),
+    Sec250(28, 250000000000L, TimeUnit.Sec),
+    Sec500(29, 500000000000L, TimeUnit.Sec),
+    Sec1000(30, 1000000000000L, TimeUnit.Sec)
     ;
 
-    // Type毎に1ピクセルに相当する時間(nano sec)を返すテーブル
-    // 例: 1 なら 1ピクセルで1ナノ秒(ns)(0.000000001秒)
-    private static final P2TTableData[] perSecTable = {
-            new P2TTableData(100, TimeUnit.Micro), // Nano100,
-            new P2TTableData(250, TimeUnit.Micro), // Nano250,
-            new P2TTableData(500, TimeUnit.Micro), // Nano500,
-            new P2TTableData(1000, TimeUnit.Micro), // Nano1000,
-            new P2TTableData(2500, TimeUnit.Micro), // Nano2500,
-            new P2TTableData(5000, TimeUnit.Micro), // Nano5000,
-            new P2TTableData(10000, TimeUnit.Micro), // Micro10,
-            new P2TTableData(25000, TimeUnit.Milli), // Micro25,
-            new P2TTableData(50000, TimeUnit.Milli), // Micro50,
-            new P2TTableData(100000, TimeUnit.Milli), // Micro100,
-            new P2TTableData(250000, TimeUnit.Milli), // Micro250,
-            new P2TTableData(500000, TimeUnit.Milli), // Micro500,
-            new P2TTableData(1000000, TimeUnit.Milli), // Micro1000,
-            new P2TTableData(2500000, TimeUnit.Milli), // Micro2500,
-            new P2TTableData(5000000, TimeUnit.Milli), // Micro5000,
-            new P2TTableData(10000000, TimeUnit.Milli), // Milli10,
-            new P2TTableData(25000000, TimeUnit.Sec), // Milli25,
-            new P2TTableData(50000000, TimeUnit.Sec), // Milli50,
-            new P2TTableData(100000000, TimeUnit.Sec), // Milli100,
-            new P2TTableData(250000000, TimeUnit.Sec), // Milli250,
-            new P2TTableData(500000000, TimeUnit.Sec), // Milli500,
-            new P2TTableData(1000000000, TimeUnit.Sec), // Milli1000,
-            new P2TTableData(2500000000L, TimeUnit.Sec), // Milli2500,
-            new P2TTableData(5000000000L, TimeUnit.Sec), // Milli5000,
-            new P2TTableData(10000000000L, TimeUnit.Sec), // Sec10,
-            new P2TTableData(25000000000L, TimeUnit.Sec), // Sec25,
-            new P2TTableData(50000000000L, TimeUnit.Sec), // Sec50,
-            new P2TTableData(100000000000L, TimeUnit.Sec), // Sec100,
-            new P2TTableData(250000000000L, TimeUnit.Sec), // Sec250,
-            new P2TTableData(500000000000L, TimeUnit.Sec), // Sec500,
-            new P2TTableData(1000000000000L, TimeUnit.Sec), // Sec1000
-    };
-
     public int value;
+    long divValue;
+    TimeUnit timeUnit;
 
-    PixelPerTime(final int value) {
+    PixelPerTime(final int value, long divValue, TimeUnit timeUnit) {
         this.value = value;
+        this.divValue = divValue;
+        this.timeUnit = timeUnit;
+    }
+
+    private void update(int value) {
+        PixelPerTime p2t = toEnum(value);
+        divValue = p2t.divValue;
+        timeUnit = p2t.timeUnit;
     }
 
     /**
@@ -136,14 +110,14 @@ enum PixelPerTime {
      * この値でlong型のtimeを割ると1ピクセルあたりの時間が取得できる
      */
     public long getDivValue() {
-        return perSecTable[value].divValue;
+        return divValue;
     }
 
     /**
      * タイムバーに表示する単位情報を取得
      */
     public TimeUnit getTimeUnit() {
-        return perSecTable[value].timeUnit;
+        return timeUnit;
     }
 
 
@@ -155,6 +129,7 @@ enum PixelPerTime {
         if (value >= values().length) {
             value = values().length - 1;
         }
+        update(value);
     }
 
     /**
@@ -165,6 +140,7 @@ enum PixelPerTime {
         if (value < 0) {
             value = 0;
         }
+        update(value);
     }
 
     public PixelPerTime toEnum(int value) {
