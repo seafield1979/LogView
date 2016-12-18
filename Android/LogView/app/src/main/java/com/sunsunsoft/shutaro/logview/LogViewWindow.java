@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.view.View;
 
 import java.util.List;
@@ -33,6 +34,7 @@ public class LogViewWindow extends UWindow {
     private LogBuffer mLogBuf;
     private Context mContext;
     private View mParentView;
+    private boolean isStop;
 
     /*
      1ピクセルに相当する時間(nano sec)
@@ -58,9 +60,35 @@ public class LogViewWindow extends UWindow {
     // 表示領域1ページ分の時間
     private long pageTime;
 
+    // 停止中のログエリアの終端の時間（停止時のカレントタイム）
+    private long currentTime;
+
+    // trueなら表示が最新位置に張り付く
+    private boolean isFixed;
+
+    public boolean isStop() {
+        return isStop;
+    }
+
+    public void setStop(boolean stop) {
+        isStop = stop;
+        if (stop) {
+            currentTime = System.nanoTime();
+        }
+    }
+
     /**
      * Get/Set
      */
+
+
+    private long getCurrentTime() {
+        if (isStop) {
+            return currentTime;
+        } else {
+            return System.nanoTime();
+        }
+    }
 
     /**
      * Constructor
@@ -130,7 +158,7 @@ public class LogViewWindow extends UWindow {
         // 最初と最後のログに囲まれた時間内のログを表示する
         startTime = RealmManager.getLogViewDao().selectMinLogTime();
         if (true) {
-            endTime = System.nanoTime() - mLogBuf.getStartTime();
+            endTime = getCurrentTime() - mLogBuf.getStartTime();
         } else {
             endTime = RealmManager.getLogViewDao().selectMaxLogTime();
         }
@@ -147,7 +175,9 @@ public class LogViewWindow extends UWindow {
 
         mScrollBarV.setPageLen(pageTime);
         mScrollBarV.updateContent(contentSize);
-        topPosTime = mScrollBarV.setBarPos(ScrollBarPos.Bottom) + startTime;
+        if (isFixed) {
+            topPosTime = mScrollBarV.setBarPos(ScrollBarPos.Bottom) + startTime;
+        }
 
         if (false) {
             ULog.print(TAG, "startTime:" + LogBuffer.longToDouble(startTime));
@@ -164,11 +194,16 @@ public class LogViewWindow extends UWindow {
     /**
      * UDrawable
      */
+    /**
+     * Windowのコンテンツ領域を描画
+     * @param canvas
+     * @param paint
+     */
     public void drawContent(Canvas canvas, Paint paint) {
         if (!isShow) return;
 
         // BG
-        UDraw.drawRectFill(canvas, paint, rect, BG_COLOR);
+        UDraw.drawRectFill(canvas, paint, rect, BG_COLOR, 0, 0);
 
         if (startTime == 0) {
             return;
@@ -189,6 +224,7 @@ public class LogViewWindow extends UWindow {
 
         topPosTime = startTime + (long)mScrollBarV.getTopPos();
 
+        ULog.print(TAG, "topPosTime:" + LogTime.longToDouble(topPosTime));
         // タイムバー
         // 最初のメモリの時間を計算する
         long p2t = pixelPerTime.getDivValue();
@@ -204,8 +240,8 @@ public class LogViewWindow extends UWindow {
             String value = String.format("%d", memTime / timeUnit.divValue());
             String text = "" + value + " " + timeUnit.unitStr();
 
-            UDraw.drawTextOneLine(canvas, paint, text, UDraw.UAlignment.None,
-                    30, x-150, y + 5,
+            UDraw.drawTextOneLine(canvas, paint, text, UAlignment.None,
+                    30, x - 150, y + 5,
                     Color.WHITE);
 
             memTime += p2t * 100;
@@ -213,6 +249,21 @@ public class LogViewWindow extends UWindow {
 
         // ログを表示
         drawLogs(canvas, paint, logs, x, y, topY, p2t);
+
+        // 固定表示
+        if (UDebug.debugLogView) {
+            int TEXT_SIZE = 30;
+            x = 200;
+            y = 30;
+            UDraw.drawTextOneLine(canvas, paint, "topPosTime:" + LogTime.longToDouble(topPosTime),
+                    UAlignment.None, 30, x, y, Color.WHITE);
+            y += TEXT_SIZE + 15;
+            UDraw.drawTextOneLine(canvas, paint, "currentTime:" + LogTime.longToDouble
+                    (getCurrentTime() - mLogBuf.getStartTime()),
+                    UAlignment.None, 30, x, y, Color.WHITE);
+            y += TEXT_SIZE + 15;
+
+        }
     }
 
     private void drawLogs(Canvas canvas, Paint paint,
@@ -230,7 +281,7 @@ public class LogViewWindow extends UWindow {
                 case Text:
                     UDraw.drawCircleFill(canvas, paint, new PointF(x + 200, y),
                             LOG_W, log._getLogId().getColor());
-                    UDraw.drawTextOneLine(canvas, paint, log.getText(), UDraw.UAlignment.None,
+                    UDraw.drawTextOneLine(canvas, paint, log.getText(), UAlignment.None,
                             LOG_W, x + 200 + 35, y + 5, Color.WHITE);
                     break;
                 case Area:

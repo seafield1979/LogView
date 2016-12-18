@@ -97,6 +97,7 @@ public class UScrollBar {
         } else {
             barLength = (int) (this.bgLength * ((float) pageLen / (float) contentLen));
         }
+        ULog.print(TAG, "barLength:" + barLength);
     }
 
     public int getBgWidth() {

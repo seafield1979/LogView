@@ -66,7 +66,7 @@ public class UTextViewOpenClose extends UTextView {
 
 
     public UTextViewOpenClose(String text, int textSize, int priority,
-                              UDraw.UAlignment alignment, int canvasW,
+                              UAlignment alignment, int canvasW,
                               float x, float y,
                               int width,
                               int color, int bgColor)
@@ -83,7 +83,7 @@ public class UTextViewOpenClose extends UTextView {
     }
 
     public static UTextViewOpenClose createInstance(String text, int textSize, int priority,
-                                                    UDraw.UAlignment alignment, int canvasW,
+                                                    UAlignment alignment, int canvasW,
                                                     float x, float y,
                                                     int width,
                                                     int color, int bgColor)
@@ -142,13 +142,13 @@ public class UTextViewOpenClose extends UTextView {
 
         if (text != null) {
             if (isOpened) {
-                UDraw.drawText(canvas, text, UDraw.UAlignment.None, textSize,
+                UDraw.drawText(canvas, text, UAlignment.None, textSize,
                         _pos.x + MARGIN_H,
                         _pos.y + MARGIN_V,
                         color);
             } else {
                 // １行だけ描画する
-                UDraw.drawTextOneLine(canvas, paint, text, UDraw.UAlignment.None, textSize,
+                UDraw.drawTextOneLine(canvas, paint, text, UAlignment.None, textSize,
                         _pos.x + MARGIN_H,
                         _pos.y + textSize + MARGIN_V,
                         color);
@@ -191,7 +191,6 @@ public class UTextViewOpenClose extends UTextView {
             drawRect = new RectF(pos.x, pos.y, pos.x + baseSize.width, pos.y + baseSize.height);
         }
         UDraw.drawRoundRectFill(canvas, paint,
-                drawRect,
-                20, bgColor);
+                drawRect, 20, bgColor, 0, 0);
     }
 }

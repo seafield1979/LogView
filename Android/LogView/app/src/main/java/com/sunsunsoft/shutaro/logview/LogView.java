@@ -144,9 +144,6 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
         // 背景塗りつぶし
         canvas.drawColor(Color.WHITE);
 
-        // アンチエリアシング(境界のぼかし)
-        paint.setAntiAlias(true);
-
         mLogViewWin.update();
 
         // Windowの処理
@@ -206,6 +203,10 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
             timer.cancel();
             timer = null;
         }
+        if (mLogViewWin != null) {
+            mLogViewWin.setStop(false);
+        }
+
         // TimerオブジェクトのscheduleAtFixedRateにTimerTaskオブジェクトを渡す
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask(){
@@ -225,6 +226,7 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
         if (timer != null) {
             timer.cancel();
             timer = null;
+            mLogViewWin.setStop(true);
         }
     }
 

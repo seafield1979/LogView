@@ -25,7 +25,7 @@ public class UTextView extends UDrawable {
      * Member variables
      */
     protected String text;
-    protected UDraw.UAlignment alignment;
+    protected UAlignment alignment;
     protected int textSize;
     protected int bgColor;
     protected int canvasW;
@@ -56,7 +56,7 @@ public class UTextView extends UDrawable {
      * Constructor
      */
     public UTextView(String text, int textSize, int priority,
-                     UDraw.UAlignment alignment, int canvasW,
+                     UAlignment alignment, int canvasW,
                      boolean isDrawBG,
                      float x, float y,
                      int width,
@@ -81,7 +81,7 @@ public class UTextView extends UDrawable {
     }
 
     public static UTextView createInstance(String text, int textSize, int priority,
-                                           UDraw.UAlignment alignment, int canvasW,
+                                           UAlignment alignment, int canvasW,
                                            boolean isDrawBG,
                                            float x, float y,
                                            int width,
@@ -169,7 +169,7 @@ public class UTextView extends UDrawable {
         paint.setColor(bgColor);
         UDraw.drawRoundRectFill(canvas, paint,
                 new RectF(pos.x, pos.y, pos.x + size.width, pos.y + size.height),
-                20, bgColor);
+                20, bgColor, 0, 0);
     }
 
     /**

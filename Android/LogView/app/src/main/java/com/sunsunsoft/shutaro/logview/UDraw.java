@@ -1,5 +1,6 @@
 package com.sunsunsoft.shutaro.logview;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,21 +13,31 @@ import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 
+
+enum UAlignment {
+    None,
+    CenterX,
+    CenterY,
+    Center
+}
+
 /**
  * 自前の描画処理
  * OnDrawの中から呼び出す
  */
 
 public class UDraw {
-    enum UAlignment {
-        None,
-        CenterX,
-        CenterY,
-        Center
-    }
-
     // ラジアン角度
     public static final double RAD = 3.1415 / 180.0;
+
+    public static void drawLine(Canvas canvas, Paint paint, float x1, float y1, float x2, float y2,
+                                int lineWidth, int color)
+    {
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(lineWidth);
+        paint.setColor(color);
+        canvas.drawLine(x1, y1, x2, y2, paint);
+    }
 
     /**
      * 矩形描画 (ライン）
@@ -66,10 +77,18 @@ public class UDraw {
      * @param rect
      * @param color
      */
-    public static void drawRectFill(Canvas canvas, Paint paint, Rect rect, int color) {
+    public static void drawRectFill(Canvas canvas, Paint paint, Rect rect, int color,
+                                    int strokeWidth, int strokeColor) {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(color);
         canvas.drawRect(rect, paint);
+
+        if (strokeWidth > 0) {
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(strokeWidth);
+            paint.setColor(strokeColor);
+            canvas.drawRect(rect, paint);
+        }
     }
 
     /**
@@ -77,16 +96,26 @@ public class UDraw {
      * @param canvas
      * @param paint
      * @param rect
+     * @param strokeWidth
+     * @param strokeColor
      * @param radius    角の半径
      * @param color
      */
-    public static void drawRoundRectFill(Canvas canvas, Paint paint, RectF rect, float radius, int
-            color) {
+    public static void drawRoundRectFill(Canvas canvas, Paint paint, RectF rect,
+                                         float radius, int color,
+                                         int strokeWidth, int strokeColor)
+    {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(color);
         canvas.drawRoundRect(rect, radius, radius, paint);
-    }
 
+        if (strokeWidth > 0) {
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(strokeWidth);
+            paint.setColor(strokeColor);
+            canvas.drawRoundRect(rect, radius, radius, paint);
+        }
+    }
     /**
      * 円描画(線)
      * @param canvas
@@ -190,13 +219,13 @@ public class UDraw {
      * @param color  チェック時の色(みチェック時は灰色)
      */
     public static void drawCheckbox(Canvas canvas, Paint paint, boolean isChecked,
-                               float x, float y, float width, int color )
+                                    float x, float y, float width, int color )
     {
         RectF rect = new RectF(x, y, x + width, y + width);
 
         if (isChecked) {
             // 枠
-            drawRoundRectFill(canvas, paint, rect, 10, color );
+            drawRoundRectFill(canvas, paint, rect, 10, color, 0, 0 );
 
             // チェック
             Path path = new Path();
@@ -224,37 +253,52 @@ public class UDraw {
      * @return
      */
     public static Size drawTextOneLine(Canvas canvas, Paint paint, String text,
-                                UAlignment alignment, int textSize,
-                                float x, float y, int color) {
+                                       UAlignment alignment, int textSize,
+                                       float x, float y, int color) {
         if (text == null) return null;
 
+        // x,yにラインを表示 for Debug
+        if (UDebug.drawTextBaseLine) {
+            drawLine(canvas, paint, x - 50, y, x + 50, y, 3, Color.YELLOW);
+            drawLine(canvas, paint, x, y - 50, x, y + 50, 3, Color.YELLOW);
+        }
+
         int pos = text.indexOf("\n");
-        String _text = null;
+        String _text;
         if ( pos != -1 ) {
             _text = text.substring(0, pos);
         } else {
             _text = text;
         }
 
-        Size size = getTextRect(canvas.getWidth(), _text, textSize);
-        switch (alignment) {
-            case CenterX:
-                x = x - size.width / 2;
-                break;
-            case CenterY:
-//                y = y + size.height / 2;
-                break;
-            case Center:
-                x = x - size.width / 2;
-//                y = y + size.height / 2;
-                break;
-        }
-
+        paint.setStyle(Paint.Style.FILL);
+        paint.setStrokeWidth(1);
         paint.setColor(color);
         paint.setTextSize(textSize);
+
+        int width = (int)paint.measureText( text);
+        Paint.FontMetrics fontMetrics = paint.getFontMetrics();
+
+        // テキストの左上端がx,yと一致するように補正
+        switch (alignment) {
+            case None:
+                y -= fontMetrics.ascent;
+                break;
+            case CenterX:
+                x -= width / 2;
+                y -= fontMetrics.ascent;
+                break;
+            case CenterY:
+                y -= fontMetrics.ascent / 2 + textSize * 0.15;
+                break;
+            case Center:
+                x -= width / 2;
+                y -= fontMetrics.ascent / 2 + textSize * 0.15;
+                break;
+        }
         canvas.drawText(_text, x, y, paint);
 
-        return size;
+        return new Size(width, textSize);
     }
 
     /**
@@ -270,7 +314,16 @@ public class UDraw {
                                 float x, float y, int color)
     {
         if (text == null) return null;
-        Size size = getTextRect(canvas.getWidth(), text, textSize);
+
+        TextPaint textPaint = new TextPaint();
+
+        // x,yにラインを表示 for Debug
+        if (UDebug.drawTextBaseLine) {
+            drawLine(canvas, textPaint, x - 50, y, x + 50, y, 3, Color.YELLOW);
+            drawLine(canvas, textPaint, x, y - 50, x, y + 50, 3, Color.YELLOW);
+        }
+
+        Size size = getTextSize(canvas.getWidth(), text, textSize);
         switch (alignment) {
             case CenterX:
                 x = x - size.width / 2;
@@ -282,10 +335,11 @@ public class UDraw {
                 x = x - size.width / 2;
                 y = y - size.height / 2;
                 break;
+            case None:
+                break;
         }
 
         // 改行ができるようにTextPaintとStaticLayoutを使用する
-        TextPaint textPaint = new TextPaint();
         textPaint.setTextSize(textSize);
         textPaint.setColor(color);
 
@@ -297,6 +351,8 @@ public class UDraw {
         canvas.translate(x, y);
 
         ///テキストの描画位置の指定
+        textPaint.setStyle(Paint.Style.FILL);
+        textPaint.setStrokeWidth(1);
         textPaint.setColor(color);
         mTextLayout.draw(canvas);
         canvas.restore();
@@ -309,7 +365,7 @@ public class UDraw {
      * @param canvasW
      * @return
      */
-    private static Size getTextRect(int canvasW, String text, int size) {
+    public static Size getTextSize(int canvasW, String text, int size) {
         TextPaint textPaint = new TextPaint();
         textPaint.setTextSize(size);
         StaticLayout textLayout = new StaticLayout(text, textPaint,
@@ -329,5 +385,23 @@ public class UDraw {
         }
 
         return new Size(maxWidth, height);
+    }
+
+    /**
+     * １行テキストの描画サイズを取得する
+     */
+    public static Size getOneLineTextSize(Paint paint, String text, int textSize) {
+        paint.setTextSize(textSize);
+        return new Size((int)paint.measureText( text), textSize);
+    }
+
+    /**
+     * Bitmap画像
+     */
+    public static void drawBitmap(Canvas canvas, Paint paint, Bitmap image,
+                                  float x, float y, int width, int height)
+    {
+        canvas.drawBitmap(image, new Rect( 0, 0, image.getWidth(), image.getHeight()),
+                new Rect((int)x, (int)y, (int)x + width,(int)y + height), paint);
     }
 }
