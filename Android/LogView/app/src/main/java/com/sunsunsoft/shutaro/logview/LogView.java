@@ -115,7 +115,7 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
 
         // UMenuBar
         if (mMenuBar == null) {
-            mMenuBar = UMenuBar.createInstance(this, this, width, height,
+            mMenuBar = MenuBarLogView.createInstance(this, this, width, height,
                     Color.BLACK);
             mWindows[WindowType.MenuBar.ordinal()] = mMenuBar;
         }
@@ -125,12 +125,14 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
             mLogViewWin = LogViewWindow.createInstance(getContext(), this, logBuf,
                     0, 0, getWidth(), getHeight() - mMenuBar.getHeight());
             mWindows[WindowType.LogView.ordinal()] = mLogViewWin;
+            mLogViewWin.addToDrawManager();
         }
 
         // ULogWindow
         if (mLogWin == null) {
             mLogWin = ULogWindow.createInstance(getContext(), this, LogWindowType.AutoDisappear,
                     0, 0, width / 2, height);
+            mLogWin.addToDrawManager();
             mWindows[WindowType.Log.ordinal()] = mLogWin;
         }
     }
@@ -236,9 +238,9 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
     /**
      * UMenuItemCallbacks
      */
-    public void menuItemClicked(MenuItemId id, int stateId)
+    public void menuItemClicked(int itemId, int stateId)
     {
-        switch (id) {
+        switch (MenuBarLogView.MenuItemId.toEnum(itemId)) {
             case Play_Stop:
                 if (stateId == 0) {
                     startTimer();

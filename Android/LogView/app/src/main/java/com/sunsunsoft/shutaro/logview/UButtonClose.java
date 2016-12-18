@@ -11,6 +11,12 @@ import android.graphics.RectF;
  * 閉じるボタン
  */
 
+/**
+ * 閉じるボタン(というかアイコン)
+ *
+ * 閉じるボタンはウィンドウの特定位置に付属するので自分で座標を持たない
+ */
+
 public class UButtonClose extends UButton {
 
     /**
@@ -121,7 +127,7 @@ public class UButtonClose extends UButton {
             case LongClick:
                 isPressed = false;
                 if (contains((int)vt.touchX(-offset.x), (int)vt.touchY(-offset.y))) {
-                    buttonCallback.UButtonClick(id);
+                    buttonCallback.UButtonClicked(id, false);
                     done = true;
                 }
                 break;

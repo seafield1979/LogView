@@ -8,68 +8,26 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.view.View;
 
-// メニューバーのトップ項目
-enum TopMenu {
-    Play,
-    Log,
-    Zoom,
-    Move,
-    Trash,
-    Settings,
-}
-
-// メニューをタッチした時に返されるID
-enum MenuItemId {
-    Play_Stop,
-
-    // add log
-    LogTop,
-    AddLogPoint,
-    AddLogText,
-    AddLogArea,
-    ClearLogs,
-
-    // zoom
-    ZoomTop,
-    ZoomIn,
-    ZoomOut,
-
-    // move
-    MoveTop,
-    Next,
-    Prev,
-
-    // trash
-    Trash,
-
-    // settings
-    Settings,
-}
+import java.util.LinkedList;
 
 /**
  * メニューバー
  * メニューに表示する項目を管理する
  */
-public class UMenuBar extends UWindow {
-    /**
-     * Constants
-     */
+abstract public class UMenuBar extends UWindow {
+
     public static final int DRAW_PRIORITY = 90;
     public static final int MENU_BAR_H = 150;
-    private static final int MARGIN_L = 30;
-    private static final int MARGIN_LR = 50;
-    private static final int MARGIN_TOP = 15;
-    public static final int TOP_MENU_MAX = TopMenu.values().length;
+    protected static final int MARGIN_L = 30;
+    protected static final int MARGIN_LR = 50;
+    protected static final int MARGIN_TOP = 15;
 
-    /**
-     * Member variables
-     */
-    private View mParentView;
-    private UMenuItemCallbacks mMenuItemCallbacks;
-    UMenuItem[] topItems = new UMenuItem[TOP_MENU_MAX];
-    UMenuItem[] items = new UMenuItem[MenuItemId.values().length];
-    private DrawList mDrawList;
-    private boolean isAnimating;
+
+    protected UMenuItemCallbacks mMenuItemCallbacks;
+    protected LinkedList<UMenuItem> topItems;
+    protected LinkedList<UMenuItem> items;
+    protected DrawList mDrawList;
+    protected boolean isAnimating;
 
     /**
      * Get/Set
@@ -78,89 +36,47 @@ public class UMenuBar extends UWindow {
         isAnimating = animating;
     }
 
-    private UMenuBar(View parentView, UMenuItemCallbacks callbackClass, int parentW, int parentH, int bgColor)
+    /**
+     * Constructor
+     */
+    public UMenuBar(UMenuItemCallbacks callbackClass,
+                    int parentW, int parentH,
+                    int bgColor)
     {
         super(null, DRAW_PRIORITY, 0, parentH - MENU_BAR_H, parentW, MENU_BAR_H, bgColor);
-        mParentView = parentView;
         mMenuItemCallbacks = callbackClass;
+        topItems = new LinkedList<>();
+        items = new LinkedList<>();
     }
 
     /**
-     * メニューバーを生成する
-     * @param parentView
-     * @param callbackClass
-     * @param parentW     親Viewのwidth
-     * @param parentH    親Viewのheight
-     * @param bgColor
-     * @return
+     * Methods
      */
-    public static UMenuBar createInstance(View parentView, UMenuItemCallbacks callbackClass, int parentW, int parentH, int bgColor)
-    {
-        UMenuBar instance = new UMenuBar(parentView, callbackClass, parentW, parentH, bgColor);
-        instance.initMenuBar();
-        return instance;
-    }
-
     /**
      * メニューバーを初期化
      */
-    private void initMenuBar() {
-        UMenuItem parent;
+    abstract void initMenuBar();
 
-        // Play & Stop
-        parent = addTopMenuItem(TopMenu.Play, MenuItemId.Play_Stop, R.drawable.play);
-
-        Bitmap bmp = BitmapFactory.decodeResource(mParentView.getResources(), R.drawable.stop);
-        parent.addState(bmp);
-
-        // Log
-        parent = addTopMenuItem(TopMenu.Log, MenuItemId.LogTop, R.drawable.add);
-        addMenuItem(parent, MenuItemId.AddLogPoint, R.drawable.number_1);
-        addMenuItem(parent, MenuItemId.AddLogText, R.drawable.number_2);
-        addMenuItem(parent, MenuItemId.AddLogArea, R.drawable.number_3);
-        addMenuItem(parent, MenuItemId.ClearLogs, R.drawable.number_4);
-
-        // Zoom
-        parent = addTopMenuItem(TopMenu.Zoom, MenuItemId.ZoomTop, R.drawable.zoom);
-        addMenuItem(parent, MenuItemId.ZoomIn, R.drawable.zoom_in);
-        addMenuItem(parent, MenuItemId.ZoomOut, R.drawable.zoom_out);
-
-        // next/prev
-        parent = addTopMenuItem(TopMenu.Move, MenuItemId.MoveTop, R.drawable.sort_arrows);
-        addMenuItem(parent, MenuItemId.Next, R.drawable.skip_down);
-        addMenuItem(parent, MenuItemId.Prev, R.drawable.skip_up);
-
-        // trash
-        addTopMenuItem(TopMenu.Trash, MenuItemId.Trash, R.drawable.trash);
-
-        // settings
-        addTopMenuItem(TopMenu.Settings, MenuItemId.Settings, R.drawable.settings_1);
-
-        mDrawList = UDrawManager.getInstance().addDrawable(this);
-        updateBGSize();
-    }
-
-    private void updateBGSize() {
-        size.width = MARGIN_L + TOP_MENU_MAX * (UMenuItem.ITEM_W + MARGIN_LR);
+    protected void updateBGSize() {
+        size.width = MARGIN_L + topItems.size() * (UMenuItem.ITEM_W + MARGIN_LR);
     }
 
     /**
      * メニューのトップ項目を追加する
-     * @param topId
      * @param menuId
      * @param bmpId
      */
-    private UMenuItem addTopMenuItem(TopMenu topId, MenuItemId menuId, int bmpId) {
-        Bitmap bmp = BitmapFactory.decodeResource(mParentView.getResources(), bmpId);
+    protected UMenuItem addTopMenuItem(int menuId, int bmpId) {
+        Bitmap bmp = UResourceManager.getInstance().getBitmapById(bmpId);
         UMenuItem item = new UMenuItem(this, menuId, bmp);
         item.setCallbacks(mMenuItemCallbacks);
         item.setShow(true);
 
-        topItems[topId.ordinal()] = item;
-        items[menuId.ordinal()] = item;
+        topItems.add(item);
+        items.add(item);
 
         // 座標設定
-        item.setPos(MARGIN_LR + (UMenuItem.ITEM_W + MARGIN_LR) * topId.ordinal(), MARGIN_TOP);
+        item.setPos(MARGIN_LR + (UMenuItem.ITEM_W + MARGIN_LR) * (topItems.size() - 1), MARGIN_TOP);
         return item;
     }
 
@@ -171,8 +87,8 @@ public class UMenuBar extends UWindow {
      * @param bmpId
      * @return
      */
-    private UMenuItem addMenuItem(UMenuItem parent, MenuItemId menuId, int bmpId) {
-        Bitmap bmp = BitmapFactory.decodeResource(mParentView.getResources(), bmpId);
+    protected UMenuItem addMenuItem(UMenuItem parent, int menuId, int bmpId) {
+        Bitmap bmp = UResourceManager.getInstance().getBitmapById(bmpId);
         UMenuItem item = new UMenuItem(this, menuId, bmp);
         item.setCallbacks(mMenuItemCallbacks);
         item.setParentItem(parent);
@@ -181,7 +97,7 @@ public class UMenuBar extends UWindow {
 
         parent.addItem(item);
 
-        items[menuId.ordinal()] = item;
+        items.add(item);
         return item;
     }
 
@@ -210,22 +126,24 @@ public class UMenuBar extends UWindow {
      * 現状はクリック以外は受け付けない
      * メニューバー以下の項目(メニューの子要素も含めて全て)のクリック判定
      */
-    public boolean touchEvent(ViewTouch vt) {
+    public boolean touchEvent(ViewTouch vt, PointF offset) {
         if (!isShow) return false;
 
         boolean done = false;
-        float touchX = vt.touchX() - pos.x;
-        float touchY = vt.touchY() - pos.y;
+        float clickX = vt.touchX() - pos.x;
+        float clickY = vt.touchY() - pos.y;
 
         // 渡されるクリック座標をメニューバーの座標系に変換
         for (UMenuItem item : topItems) {
             if (item == null) continue;
 
-            if (item.checkTouch(vt, touchX, touchY)) {
+            if (item.checkTouch(vt, clickX, clickY)) {
                 done = true;
                 if (item.isOpened()) {
                     // 他に開かれたメニューを閉じる
                     closeAllMenu(item);
+                } else {
+
                 }
                 break;
             }
@@ -234,8 +152,8 @@ public class UMenuBar extends UWindow {
 
         // メニューバーの領域をクリックしていたら、メニュー以外がクリックされるのを防ぐためにtrueを返す
         if (!done) {
-            if (0 <= touchX && touchX <= size.width &&
-                    0 <= touchY && touchY <= size.height)
+            if (0 <= clickX && clickX <= size.width &&
+                    0 <= clickY && clickY <= size.height)
             {
                 return true;
             }
@@ -248,7 +166,7 @@ public class UMenuBar extends UWindow {
      * メニューを閉じる
      * @param excludedItem
      */
-    private void closeAllMenu(UMenuItem excludedItem) {
+    protected void closeAllMenu(UMenuItem excludedItem) {
         for (UMenuItem item : topItems) {
             if (item == excludedItem) continue;
             item.closeMenu();
@@ -258,8 +176,8 @@ public class UMenuBar extends UWindow {
     /**
      * メニュー項目の座標をスクリーン座標で取得する
      */
-    public PointF getItemPos(MenuItemId itemId) {
-        UMenuItem item = items[itemId.ordinal()];
+    public PointF getItemPos(int itemId) {
+        UMenuItem item = items.get(itemId);
         if (item == null) {
             return new PointF();
         }
@@ -275,20 +193,8 @@ public class UMenuBar extends UWindow {
      * @param canvas
      * @param paint
      */
-    public void drawContent(Canvas canvas, Paint paint ) {
+    public void drawContent(Canvas canvas, Paint paint, PointF offset ) {
         if (!isShow) return;
-
-        // bg
-        // 内部を塗りつぶし
-        paint.setStyle(Paint.Style.FILL);
-        // 色
-        paint.setColor(0xff000000);
-
-        canvas.drawRect(pos.x,
-                pos.y,
-                pos.x + size.width,
-                pos.y + size.height,
-                paint);
 
         // トップのアイテムから描画
         for (UMenuItem item : topItems) {
@@ -328,3 +234,4 @@ public class UMenuBar extends UWindow {
     }
 
 }
+

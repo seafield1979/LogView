@@ -17,15 +17,19 @@ public class MainActivity extends AppCompatActivity {
         // Realmの初期化
         RealmManager.initRealm(getApplicationContext());
 
-        if (savedInstanceState == null) {
-            FragmentTop fragment = new FragmentTop();
+        // UResourceManager
+        UResourceManager.createInstance(this);
 
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            // コンテナにMainFragmentを格納
-            transaction.add(R.id.fragment_container, fragment, FragmentTop.TAG);
-            // 画面に表示
-            transaction.commit();
-        }
+        FragmentTop fragment = new FragmentTop();
+
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        // コンテナにMainFragmentを格納
+        transaction.add(R.id.fragment_container, fragment, FragmentTop.TAG);
+
+        // 画面に表示
+        transaction.commit();
+
     }
 
     @Override

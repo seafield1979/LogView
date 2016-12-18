@@ -9,8 +9,9 @@ import android.graphics.Rect;
 
 import java.util.LinkedList;
 
+
 interface UMenuItemCallbacks {
-    void menuItemClicked(MenuItemId id, int stateId);
+    void menuItemClicked(int itemId, int stateId);
 }
 
 /**
@@ -28,13 +29,12 @@ public class UMenuItem extends UDrawable {
     private static final int CHILD_MARGIN_V = 30;
     private static final int CHILD_MARGIN_H = 30;
 
-
     /**
      * メンバ変数
      */
     protected UMenuBar menuBar;
     protected UMenuItemCallbacks mCallbacks;
-    protected MenuItemId itemId;
+    protected int itemId;
     protected int nestCount;
     protected int stateId;          // 現在の状態
     protected int stateMax;         // 状態の最大値 addState で増える
@@ -81,7 +81,7 @@ public class UMenuItem extends UDrawable {
         mCallbacks = callbacks;
     }
 
-    public UMenuItem(UMenuBar menuBar, MenuItemId id, Bitmap icon) {
+    public UMenuItem(UMenuBar menuBar, int id, Bitmap icon) {
         super(DRAW_PRIORITY, 0,0,0,0);
         this.menuBar = menuBar;
         this.itemId = id;
@@ -216,7 +216,7 @@ public class UMenuItem extends UDrawable {
      * @param vt
      * @return
      */
-    public boolean touchEvent(ViewTouch vt) {
+    public boolean touchEvent(ViewTouch vt, PointF offset) {
         return false;
     }
 
@@ -284,10 +284,10 @@ public class UMenuItem extends UDrawable {
 
             if (nestCount == 0) {
                 // 縦方向
-                item.startMovingPos(0, -count * (ITEM_H + CHILD_MARGIN_V), ANIME_FRAME);
+                item.startMoving(0, -count * (ITEM_H + CHILD_MARGIN_V), ANIME_FRAME);
             } else if (nestCount == 1) {
                 // 横方向
-                item.startMovingPos(count * (ITEM_W + CHILD_MARGIN_H), 0, ANIME_FRAME);
+                item.startMoving(count * (ITEM_W + CHILD_MARGIN_H), 0, ANIME_FRAME);
             }
             count++;
         }
@@ -302,7 +302,7 @@ public class UMenuItem extends UDrawable {
         isOpened = false;
 
         for (UMenuItem item : childItems) {
-            item.startMovingPos(0, 0, ANIME_FRAME);
+            item.startMoving(0, 0, ANIME_FRAME);
             item.isClosing = true;
             if (item.isOpened) {
                 item.closeMenu();

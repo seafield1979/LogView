@@ -1,16 +1,21 @@
 package com.sunsunsoft.shutaro.logview;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.Log;
 
 interface UButtonCallbacks {
-    boolean UButtonClick(int id);
-    boolean UButtonLongClick(int id);
+    /**
+     * ボタンがクリックされた時の処理
+     * @param id  button id
+     * @param pressedOn  押された状態かどうか(On/Off)
+     * @return
+     */
+    boolean UButtonClicked(int id, boolean pressedOn);
 }
-
 
 /**
  * クリックでイベントが発生するボタン
@@ -19,19 +24,23 @@ interface UButtonCallbacks {
  * ボタンが押されたときの動作はtypeで指定できる
  *   BGColor ボタンの背景色が変わる
  *   Press   ボタンがへこむ
+ *   Press2  ボタンがへこむ。へこんだ状態が維持される
  */
 enum UButtonType {
     BGColor,    // color changing
-    Press       // pressed down
+    Press,      // pressed down
+    Press2,     // pressed down, On/Off swiching
+    Press3,     // pressed down, Off -> On only, to change Off call setPressedOn(false)
 }
 
-public class UButton extends UDrawable {
+abstract public class UButton extends UDrawable {
     /**
      * Consts
      */
     public static final String TAG = "UButton";
-    protected static final int PRESS_Y = 12;
+    protected static final int PRESS_Y = 16;
     protected static final int BUTTON_RADIUS = 16;
+    protected static final int DISABLED_COLOR = Color.rgb(160,160,160);
 
     /**
      * Member Variables
@@ -39,10 +48,12 @@ public class UButton extends UDrawable {
     protected int id;
     protected UButtonType type;
     protected UButtonCallbacks buttonCallback;
+    protected boolean enabled;          // falseならdisableでボタンが押せなくなる
     protected boolean isPressed;
     protected int pressedColor;
-
-
+    protected int disabledColor;        // enabled == false のときの色
+    protected int disabledColor2;       // eanbled == false のときの濃い色
+    protected boolean pressedOn;        // Press2タイプの時のOn状態
 
     /**
      * Get/Set
@@ -51,6 +62,17 @@ public class UButton extends UDrawable {
         return id;
     }
 
+    public boolean isPressedOn() {
+        return pressedOn;
+    }
+
+    public void setPressedOn(boolean pressedOn) {
+        this.pressedOn = pressedOn;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
     /**
      * Constructor
@@ -60,14 +82,17 @@ public class UButton extends UDrawable {
     {
         super(priority, x, y, width, height);
         this.id = id;
+        this.enabled = true;
         this.buttonCallback = callbacks;
         this.type = type;
         this.color = color;
         if (type == UButtonType.BGColor) {
-            this.pressedColor = UColor.addBrightness(color, 0.4f);
+            this.pressedColor = UColor.addBrightness(color, 0.3f);
         } else {
-            this.pressedColor = UColor.addBrightness(color, -0.3f);
+            this.pressedColor = UColor.addBrightness(color, -0.2f);
         }
+        disabledColor = DISABLED_COLOR;
+        disabledColor2 = UColor.addBrightness(disabledColor, -0.2f);
     }
 
     /**
@@ -88,49 +113,25 @@ public class UButton extends UDrawable {
      * @param paint
      * @param offset 独自の座標系を持つオブジェクトをスクリーン座標系に変換するためのオフセット値
      */
-    public void draw(Canvas canvas, Paint paint, PointF offset) {
-        // 内部を塗りつぶし
-        paint.setStyle(Paint.Style.FILL);
-
-        // 色
-        // 押されていたら明るくする
-        int _color = color;
-
-        paint.setColor(_color);
-
-        PointF _pos = new PointF(pos.x, pos.y);
-        if (offset != null) {
-            _pos.x += offset.x;
-            _pos.y += offset.y;
-        }
-
-        int _height = size.height;
-
-        if (type == UButtonType.Press) {
-            // 押したら凹むボタン
-            if (isPressed) {
-                _pos.y += PRESS_Y;
-            } else {
-                // ボタンの影用に下に矩形を描画
-                UDraw.drawRoundRectFill(canvas, paint,
-                        new RectF(_pos.x, _pos.y, _pos.x + size.width, _pos.y + size.height), BUTTON_RADIUS, pressedColor, 0, 0);
-            }
-            _height -= PRESS_Y;
-
-        } else {
-            // 押したら色が変わるボタン
-            if (isPressed) {
-                _color = pressedColor;
-            }
-        }
-        UDraw.drawRoundRectFill(canvas, paint,
-                new RectF(_pos.x, _pos.y, _pos.x + size.width, _pos.y + _height),
-                BUTTON_RADIUS, _color, 0, 0);
-    }
+    abstract void draw(Canvas canvas, Paint paint, PointF offset);
 
     /**
-     * Touchable Interface
+     * UDrawable Interface
      */
+    /**
+     * タッチアップイベント
+     */
+    public boolean touchUpEvent(ViewTouch vt) {
+        boolean done = false;
+
+        if (vt.isTouchUp()) {
+            if (isPressed) {
+                isPressed = false;
+                done = true;
+            }
+        }
+        return done;
+    }
 
     /**
      * タッチイベント
@@ -142,15 +143,11 @@ public class UButton extends UDrawable {
     }
 
     public boolean touchEvent(ViewTouch vt, PointF offset) {
+        if (!enabled) return false;
+
         boolean done = false;
         if (offset == null) {
             offset = new PointF();
-        }
-        if (vt.isTouchUp()) {
-            if (isPressed) {
-                isPressed = false;
-                done = true;
-            }
         }
 
         switch(vt.type) {
@@ -166,8 +163,19 @@ public class UButton extends UDrawable {
             case LongClick:
                 isPressed = false;
                 if (rect.contains((int)vt.touchX(-offset.x), (int)vt.touchY(-offset.y))) {
-                    click();
-                    done = true;
+                    if (type == UButtonType.Press3) {
+                        // Off -> On に切り替わる一回目だけイベント発生
+                        if (pressedOn == false) {
+                            click();
+                            pressedOn = true;
+                        }
+                    } else {
+                        click();
+                        done = true;
+                        if (type == UButtonType.Press2) {
+                            pressedOn = !pressedOn;
+                        }
+                    }
                 }
                 break;
             case MoveEnd:
@@ -180,8 +188,7 @@ public class UButton extends UDrawable {
     public void click() {
         Log.v(TAG, "click");
         if (buttonCallback != null) {
-            buttonCallback.UButtonClick(id);
+            buttonCallback.UButtonClicked(id, pressedOn);
         }
     }
-
 }

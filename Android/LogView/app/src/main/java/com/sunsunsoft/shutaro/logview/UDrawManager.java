@@ -19,9 +19,10 @@ enum DrawPriority {
     DragIcon(11),
     IconWindow(100),
     ;
+
     private final int priority;
 
-    private DrawPriority(final int priority) {
+    DrawPriority(final int priority) {
         this.priority = priority;
     }
 
@@ -34,26 +35,41 @@ enum DrawPriority {
  * 描画オブジェクトを管理するクラス
  * 描画するオブジェクトを登録すると一括で描画を行ってくれる
  * ※シングルトンなので getInstance() でインスタンスを取得する
+ *
+ * ページ毎に描画ツリーを持つことができる
  */
 public class UDrawManager {
+    /**
+     * Constants
+     */
     public static final String TAG = "UDrawManager";
+    private static final int DEFAULT_PAGE = 1;
 
+    /**
+     * Static variables
+     */
     private static UDrawManager singleton = new UDrawManager();
-
     public static UDrawManager getInstance() { return singleton; }
 
+
+    /**
+     * Member variable
+     */
     // タッチ中のDrawableオブジェクト
     // タッチを放すまで他のオブジェクトのタッチ処理はしない
     private UDrawable touchingObj;
 
-    // 同じプライオリティーのDrawableリストを管理するリスト
-    private TreeMap<Integer, DrawList> lists;
+    // ページのリスト
+    private TreeMap<Integer, TreeMap<Integer, DrawList>> mPageList;
+
+    // カレントページ
+    private int mCurrentPage = DEFAULT_PAGE;
 
     private LinkedList<UDrawable> removeRequest = new LinkedList<>();
 
-
-    // Get/Set
-
+    /**
+     * Get/Set
+     */
     public UDrawable getTouchingObj() {
         return touchingObj;
     }
@@ -67,7 +83,41 @@ public class UDrawManager {
      * アクティビティが生成されるタイミングで呼ぶ
      */
     public void init() {
-        lists = new TreeMap<>();
+        mPageList = new TreeMap<>();
+
+        // デフォルトのページを設定
+        setCurrentPage(mCurrentPage);
+    }
+
+    public void initPage(int page) {
+        TreeMap<Integer, DrawList> lists = mPageList.get(page);
+        if (lists != null) {
+            lists.clear();
+        }
+    }
+
+    /**
+     * ページを切り替える
+     * @param page 切り替え先のページ 0ならデフォルトのページ
+     */
+    public void setCurrentPage(int page) {
+        // 古いページの削除リクエストを処理する
+        removeRequestedList();
+
+        // ページリストが存在しなら作成する
+        if (!mPageList.containsKey(page)) {
+            TreeMap<Integer, DrawList> lists = new TreeMap<>();
+            mPageList.put(page, lists);
+        }
+
+        this.mCurrentPage = page;
+    }
+
+    /**
+     * カレントページのリストを取得
+     */
+    private TreeMap<Integer, DrawList> getCurrentDrawLists() {
+        return mPageList.get(mCurrentPage);
     }
 
     /**
@@ -80,6 +130,9 @@ public class UDrawManager {
         return addDrawable(obj);
     }
     public DrawList addDrawable(UDrawable obj) {
+        // カレントページのリストを取得
+        TreeMap<Integer, DrawList> lists = getCurrentDrawLists();
+
         // 挿入するリストを探す
         Integer _priority = new Integer(obj.getDrawPriority());
         DrawList list = lists.get(_priority);
@@ -107,6 +160,9 @@ public class UDrawManager {
      * 削除要求のリストの描画オブジェクトを削除する
      */
     private void removeRequestedList() {
+        TreeMap<Integer, DrawList> lists = getCurrentDrawLists();
+        if (lists == null) return;
+
         for (UDrawable obj : removeRequest) {
             Integer _priority = new Integer(obj.getDrawPriority());
             DrawList list = lists.get(_priority);
@@ -122,6 +178,8 @@ public class UDrawManager {
      * @param priority
      */
     public void removeWithPriority(int priority) {
+        TreeMap<Integer, DrawList> lists = getCurrentDrawLists();
+
         lists.remove(new Integer(priority));
     }
 
@@ -131,6 +189,8 @@ public class UDrawManager {
      * @param priority
      */
     public void setPriority(DrawList list1, int priority) {
+        TreeMap<Integer, DrawList> lists = getCurrentDrawLists();
+
         // 変更先のプライオリティーを持つリストを探す
         Integer _priority = new Integer(priority);
         DrawList list2 = lists.get(_priority);
@@ -151,6 +211,8 @@ public class UDrawManager {
      * @param priority
      */
     public void setPriority(UDrawable obj, int priority) {
+        TreeMap<Integer, DrawList> lists = getCurrentDrawLists();
+
         // 探す
         for (Integer pri : lists.keySet()) {
             DrawList list = lists.get(pri);
@@ -176,9 +238,17 @@ public class UDrawManager {
      */
     public boolean draw(Canvas canvas, Paint paint) {
         boolean redraw = false;
+        TreeMap<Integer, DrawList> lists = getCurrentDrawLists();
 
         // 削除要求のかかったオブジェクトを削除する
         removeRequestedList();
+
+        for (DrawList list : lists.values()) {
+            // 毎フレームの処理
+            if (list.doAction()) {
+                redraw = true;
+            }
+        }
 
         ULog.startCount(TAG);
         for (DrawList list : lists.descendingMap().values()) {
@@ -186,7 +256,8 @@ public class UDrawManager {
                 redraw = true;
             }
         }
-        ULog.endCount(TAG);
+
+        ULog.showCount(TAG);
         return redraw;
     }
 
@@ -197,14 +268,48 @@ public class UDrawManager {
      * @return true:再描画
      */
     public boolean touchEvent(ViewTouch vt) {
+        TreeMap<Integer, DrawList> lists = getCurrentDrawLists();
+
+        boolean isRedraw = false;
+        for (DrawList list : lists.values()) {
+            if (list.touchUpEvent(vt) ) {
+                // タッチアップイベントは全てのオブジェクトで処理する
+                isRedraw = true;
+            }
+        }
+
         for (DrawList list : lists.values()) {
             if (list.touchEvent(vt) ) {
+                // その他のタッチイベントはtrueが返った時点で打ち切り
                 return true;
             }
         }
-        return false;
+        return isRedraw;
+    }
+
+    /**
+     * 全ての描画オブジェクト情報を出力する
+     */
+    public void showAllList(boolean ascending, boolean isShowOnly) {
+        // カレントページのリストを取得
+        TreeMap<Integer, DrawList> lists = getCurrentDrawLists();
+
+        ULog.print(TAG, " ++ showAllList ++");
+        for (DrawList list : lists.descendingMap().values()) {
+            ULog.print(TAG, " + priority:" + list.getPriority());
+            list.showAll(ascending, isShowOnly);
+        }
     }
 }
+
+
+
+
+
+
+
+
+
 
 /**
  * 描画オブジェクトのリストを管理するクラス
@@ -213,7 +318,6 @@ public class UDrawManager {
 class DrawList
 {
     // 描画範囲 この範囲外には描画しない
-//    public Rect clipRect;
     private int priority;
     private LinkedList<UDrawable> list = new LinkedList<>();
 
@@ -269,7 +373,6 @@ class DrawList
         // 分けるのが面倒なのでアニメーションと描画を同時に処理する
         boolean allDone = true;
         for (UDrawable obj : list) {
-            Rect objRect = obj.getRect();
 
             if (obj.animate()) {
                 allDone = false;
@@ -278,9 +381,19 @@ class DrawList
             PointF offset = obj.getDrawOffset();
             obj.draw(canvas, paint, offset);
             drawId(canvas, paint, obj.getRect(), priority);
+        }
+        return !allDone;
+    }
 
-            if (UDebug.drawIconId) {
-                Rect _rect = obj.getRect();
+    /**
+     * 毎フレームの処理
+     * @return
+     */
+    public boolean doAction() {
+        boolean allDone = true;
+        for (UDrawable obj : list) {
+            if (obj.doAction()) {
+                allDone = false;
             }
         }
         return !allDone;
@@ -307,6 +420,22 @@ class DrawList
     }
 
     /**
+     * タッチアップイベント処理
+     * @param vt
+     * @return
+     */
+    protected boolean touchUpEvent(ViewTouch vt) {
+        boolean isRedraw = false;
+
+        for(UDrawable obj : list){
+            if (obj.touchUpEvent(vt)) {
+                isRedraw = true;
+            }
+        }
+        return isRedraw;
+    }
+
+    /**
      * タッチイベント処理
      * リストの末尾(手前に表示されている)から順に処理する
      * @param vt
@@ -322,15 +451,17 @@ class DrawList
         if (manager.getTouchingObj() != null &&
                 vt.type != TouchType.Touch)
         {
-            if (manager.getTouchingObj().touchEvent(vt)) {
+            if (manager.getTouchingObj().touchEvent(vt, null)) {
                 return true;
             }
             return false;
         }
 
-        for(ListIterator it = list.listIterator(list.size()); it.hasPrevious();){
-            UDrawable obj = (UDrawable)it.previous();
-            if (obj.touchEvent(vt)) {
+        for (UDrawable obj : list) {
+            if (!obj.isShow()) continue;
+            PointF offset = obj.getDrawOffset();
+
+            if (obj.touchEvent(vt, offset)) {
                 if (vt.type == TouchType.Touch) {
                     manager.setTouchingObj(obj);
                 }
@@ -338,5 +469,37 @@ class DrawList
             }
         }
         return false;
+    }
+
+
+    /**
+     * for Debug
+     */
+    /**
+     * 描画オブジェクトをすべて出力する
+     * @param isShowOnly  画面に表示中のもののみログを出力する
+     */
+    public void showAll(boolean ascending, boolean isShowOnly) {
+        // パッケージ名を除去
+        final String packageName = DrawList.class.getPackage().getName();
+
+        if (ascending) {
+            for (UDrawable obj : list) {
+                if (!isShowOnly || obj.isShow) {
+                    String objStr = obj.toString();
+                    objStr = objStr.replace(packageName + ".", "");
+                    ULog.print(UDrawManager.TAG, objStr + " isShow:" + obj.isShow);
+                }
+            }
+        } else {
+            for(ListIterator it = list.listIterator(list.size()); it.hasPrevious();){
+                UDrawable obj = (UDrawable)it.previous();
+                if (!isShowOnly || obj.isShow) {
+                    String objStr = obj.toString();
+                    objStr = objStr.replace(packageName + ".", "");
+                    ULog.print(UDrawManager.TAG, objStr + " isShow:" + obj.isShow);
+                }
+            }
+        }
     }
 }

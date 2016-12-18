@@ -174,7 +174,7 @@ public class LogViewWindow extends UWindow {
         contentSize.height = contentLen;
 
         mScrollBarV.setPageLen(pageTime);
-        mScrollBarV.updateContent(contentSize);
+        mScrollBarV.updateContent(contentLen);
         if (isFixed) {
             topPosTime = mScrollBarV.setBarPos(ScrollBarPos.Bottom) + startTime;
         }
@@ -199,7 +199,7 @@ public class LogViewWindow extends UWindow {
      * @param canvas
      * @param paint
      */
-    public void drawContent(Canvas canvas, Paint paint) {
+    public void drawContent(Canvas canvas, Paint paint, PointF offset) {
         if (!isShow) return;
 
         // BG
@@ -225,6 +225,8 @@ public class LogViewWindow extends UWindow {
         topPosTime = startTime + (long)mScrollBarV.getTopPos();
 
         ULog.print(TAG, "topPosTime:" + LogTime.longToDouble(topPosTime));
+
+
         // タイムバー
         // 最初のメモリの時間を計算する
         long p2t = pixelPerTime.getDivValue();
@@ -240,8 +242,8 @@ public class LogViewWindow extends UWindow {
             String value = String.format("%d", memTime / timeUnit.divValue());
             String text = "" + value + " " + timeUnit.unitStr();
 
-            UDraw.drawTextOneLine(canvas, paint, text, UAlignment.None,
-                    30, x - 150, y + 5,
+            UDraw.drawTextOneLine(canvas, paint, text, UAlignment.Right_CenterY,
+                    30, x - 30, y,
                     Color.WHITE);
 
             memTime += p2t * 100;
@@ -313,10 +315,10 @@ public class LogViewWindow extends UWindow {
      * @param vt
      * @return trueならViewを再描画
      */
-    public boolean touchEvent(ViewTouch vt) {
+    public boolean touchEvent(ViewTouch vt, PointF offset) {
         if (!isShow) return false;
 
-        if (super.touchEvent(vt)) {
+        if (super.touchEvent(vt, offset)) {
             return true;
         }
 

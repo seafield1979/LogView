@@ -18,7 +18,9 @@ enum UAlignment {
     None,
     CenterX,
     CenterY,
-    Center
+    Center,
+    Right,
+    Right_CenterY
 }
 
 /**
@@ -293,6 +295,13 @@ public class UDraw {
                 break;
             case Center:
                 x -= width / 2;
+                y -= fontMetrics.ascent / 2 + textSize * 0.15;
+                break;
+            case Right:
+                x -= width;
+                break;
+            case Right_CenterY:
+                x -= width;
                 y -= fontMetrics.ascent / 2 + textSize * 0.15;
                 break;
         }
