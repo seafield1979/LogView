@@ -81,6 +81,9 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
         this.setOnTouchListener(this);
         mContext = context;
 
+        // ログをクリア
+        logBuf.clearLog();
+
         startTimer();
     }
 

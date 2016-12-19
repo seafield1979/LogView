@@ -2,13 +2,10 @@ package com.sunsunsoft.shutaro.logview;
 
 /**
  * Created by shutaro on 2016/12/18.
+ *
+ * LogView画面に表示するメニューバー
  */
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.PointF;
 import android.view.View;
 
 /**
@@ -20,41 +17,45 @@ public class MenuBarLogView extends UMenuBar {
     /**
      * Enums
      */
+    enum MenuItemType {
+        Top,
+        Child,
+        State
+    }
     // メニューのID、画像ID、Topかどうかのフラグ
     enum MenuItemId {
-        Play_Stop(R.drawable.play, true),
+        Play_Stop(R.drawable.play, MenuItemType.Top),
+        Stop(R.drawable.stop, MenuItemType.State),
 
-        LogTop(R.drawable.add, true),
-        AddLogPoint(R.drawable.number_1, false),
-        AddLogText(R.drawable.number_2, false),
-        AddLogArea(R.drawable.number_3, false),
-        ClearLogs(R.drawable.trash, false),
+        LogTop(R.drawable.add, MenuItemType.Top),
+        AddLogPoint(R.drawable.number_1, MenuItemType.Child),
+        AddLogText(R.drawable.number_2, MenuItemType.Child),
+        AddLogArea(R.drawable.number_3, MenuItemType.Child),
+        ClearLogs(R.drawable.trash, MenuItemType.Child),
 
-        ZoomTop(R.drawable.zoom, true),
-        ZoomIn(R.drawable.zoom_in, false),
-        ZoomOut(R.drawable.zoom_out, false),
+        ZoomTop(R.drawable.zoom, MenuItemType.Top),
+        ZoomIn(R.drawable.zoom_in, MenuItemType.Child),
+        ZoomOut(R.drawable.zoom_out, MenuItemType.Child),
 
-        MoveTop(R.drawable.sort_arrows, true),
-        Next(R.drawable.skip_down, false),
-        Prev(R.drawable.skip_up, false),
+        MoveTop(R.drawable.sort_arrows, MenuItemType.Top),
+        Next(R.drawable.skip_down, MenuItemType.Child),
+        Prev(R.drawable.skip_up, MenuItemType.Child),
 
-        Settings(R.drawable.settings_1, true),
+        Settings(R.drawable.settings_1, MenuItemType.Top),
         ;
 
-        private boolean isTop;
+        private MenuItemType type;
         private int imageId;
 
-        MenuItemId(int imageId, boolean isTop) {
+        MenuItemId(int imageId, MenuItemType type) {
             this.imageId = imageId;
-            this.isTop = isTop;
+            this.type = type;
         }
 
         public int getImageId() {
             return imageId;
         }
-        public boolean isTop() {
-            return isTop;
-        }
+        public MenuItemType getType() { return type; }
 
         public static MenuItemId toEnum(int value) {
             if (value >= values().length) return Play_Stop;
@@ -88,16 +89,21 @@ public class MenuBarLogView extends UMenuBar {
 
 
     protected void initMenuBar() {
+        UMenuItem item = null;
         UMenuItem itemTop = null;
 
         // add menu items
         for (MenuItemId itemId : MenuItemId.values()) {
-            if (itemId.isTop()) {
-                // Parent
-                itemTop = addTopMenuItem(itemId.ordinal(), itemId.getImageId());
-            } else {
-                // Child
-                addMenuItem(itemTop, itemId.ordinal(), itemId.getImageId());
+            switch(itemId.getType()) {
+                case Top:
+                    item = itemTop = addTopMenuItem(itemId.ordinal(), itemId.getImageId());
+                    break;
+                case Child:
+                    item = addMenuItem(itemTop, itemId.ordinal(), itemId.getImageId());
+                    break;
+                case State:
+                    item.addState(UResourceManager.getBitmapById(itemId.getImageId()));
+                    break;
             }
         }
 
