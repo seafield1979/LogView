@@ -210,7 +210,6 @@ public class ViewTouch {
         float distance = (vx - x) * (vx - x) + (vy - y) * (vy - y);
         if (distance <= length * length) {
 
-            Log.d(TAG, "" + distance + " len:" + (length * length));
             return true;
         }
         return false;

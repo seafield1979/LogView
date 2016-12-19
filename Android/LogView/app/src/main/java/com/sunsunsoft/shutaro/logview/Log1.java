@@ -4,6 +4,8 @@ import android.util.Log;
 
 /**
  * Created by shutaro on 2016/11/27.
+ *
+ * LogBufferList用のログ
  */
 
 public class Log1 implements LogBase {
@@ -16,14 +18,14 @@ public class Log1 implements LogBase {
     /**
      * Member Variables
      */
-    int id;
-    long time;      // 1 = 1 nano sec
-    String text;
-    LogType type;
+    private long time;      // 1 = 1 nano sec
+    private long time2;
+    private String text;
+    private LogType type;
 
-    LogId logId;
-    LogType logType;
-    LogAreaType areaType;
+    private LogId logId;
+    private LogType logType;
+    private int laneId;
 
     /**
      * Get/Set
@@ -33,9 +35,6 @@ public class Log1 implements LogBase {
     }
     public LogId _getLogId() {
         return logId;
-    }
-    public LogAreaType _getAreaType() {
-        return areaType;
     }
     public String getText() {
         return text;
@@ -47,36 +46,37 @@ public class Log1 implements LogBase {
     /**
      * 点
      */
-    public Log1 createPoint(int id, LogId logId, long time) {
-        Log1 instance = new Log1(id, logId, LogType.Point, null, time, null);
+    public Log1 createPoint(LogId logId, int laneId, long time) {
+        Log1 instance = new Log1( LogType.Point, logId, laneId, null, time, 0);
         return instance;
     }
 
     /**
      * テキスト
      */
-    public Log1 createText(int id, LogId logId, long time, String text) {
-        Log1 instance = new Log1(id, logId, LogType.Point, null, time, text);
+    public Log1 createText(LogId logId, int laneId, long time, String text) {
+        Log1 instance = new Log1( LogType.Point, logId, laneId, text, time, 0);
         return instance;
     }
 
     /**
      * 範囲 (2つのログで１セット）
      */
-    public Log1 createArea(int id, LogId logId, LogAreaType areaType, long time) {
-        Log1 instance = new Log1(id, logId, LogType.Area, areaType, time, null);
+    public Log1 createArea(LogId logId, int laneId, long time, long time2) {
+        Log1 instance = new Log1( LogType.Area, logId, laneId, null, time, time2);
         return instance;
     }
 
-    public Log1(int id, LogId logId, LogType logType, LogAreaType areaType, long time, String
-            text)
+    public Log1(LogType logType, LogId logId, int laneId, String
+            text, long time, long time2)
     {
-        this.id = id;
-        this.logId = logId;
-        this.text = text;
         this.logType = logType;
         this.logId = logId;
-        this.areaType = areaType;
+        this.laneId = laneId;
+        this.text = text;
+        this.logId = logId;
+        this.time = time;
+        this.time2 = time2;
     }
 
     /**
@@ -88,14 +88,17 @@ public class Log1 implements LogBase {
     }
 
     public String toString() {
-        return "id:" + id + " type:" + logType +
+        return " type:" + logType +
                 " logId:" + logId +
-                " areaType:" + areaType + " " +
-                "time:" + LogBuffer.longToDouble(time) +  " " + text;
+                " laneId:" + laneId +
+                " time:" + LogBuffer.longToDouble(time) +  " " + text;
     }
 
     public long getTime()
     {
         return time;
     }
+    public long getTime2() { return time2; }
+
+    public int getLaneId() { return laneId; }
 }

@@ -11,7 +11,7 @@ import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 /**
- * 単語カード
+ * LogBufferDB用のログ
  * RealmObjectのサブクラスなのでそのままテーブルとして使用される
  */
 public class Log2 extends RealmObject implements LogBase{
@@ -21,9 +21,10 @@ public class Log2 extends RealmObject implements LogBase{
     private int id;
 
     private long time;      // 1 = 1 nano sec
+    private long time2;     // 1 = 1 nano sec
     private int type;       // LogType
     private int logId;      // LogId
-    private int areaType;   // LogAreaType
+    private int laneId;     // LaneId
     private String text;
 
     /**
@@ -43,6 +44,14 @@ public class Log2 extends RealmObject implements LogBase{
 
     public void setTime(long time) {
         this.time = time;
+    }
+
+    public long getTime2() {
+        return time2;
+    }
+
+    public void setTime2(long time2) {
+        this.time2 = time2;
     }
 
     public String getText() {
@@ -69,12 +78,12 @@ public class Log2 extends RealmObject implements LogBase{
         this.logId = logId;
     }
 
-    public int getAreaType() {
-        return areaType;
+    public int getLaneId() {
+        return laneId;
     }
 
-    public void setAreaType(int areaType) {
-        this.areaType = areaType;
+    public void setLaneId(int laneId) {
+        this.laneId = laneId;
     }
 
     public LogType _getType() {
@@ -82,9 +91,6 @@ public class Log2 extends RealmObject implements LogBase{
     }
     public LogId _getLogId() {
         return LogId.toEnum(logId);
-    }
-    public LogAreaType _getAreaType() {
-        return LogAreaType.toEnum(areaType);
     }
 
 
@@ -101,7 +107,7 @@ public class Log2 extends RealmObject implements LogBase{
     public String toString() {
         return "id:" + id + " type:" + type +
                 " logId:" + logId +
-                " areaType:" + areaType + " " +
+                " laneId:" + laneId + " " +
                 "time:" + LogBuffer.longToDouble(time) +  " " + text;
     }
 }

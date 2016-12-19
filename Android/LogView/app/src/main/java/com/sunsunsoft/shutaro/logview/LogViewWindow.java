@@ -8,7 +8,9 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.view.View;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * LogView本体のWindow
@@ -66,6 +68,10 @@ public class LogViewWindow extends UScrollWindow {
     // trueなら表示が最新位置に張り付く
     private boolean isFixed;
 
+    /**
+     * Get/Set
+     */
+
     public boolean isStop() {
         return isStop;
     }
@@ -76,11 +82,6 @@ public class LogViewWindow extends UScrollWindow {
             currentTime = System.nanoTime();
         }
     }
-
-    /**
-     * Get/Set
-     */
-
 
     private long getCurrentTime() {
         if (isStop) {
@@ -250,9 +251,6 @@ public class LogViewWindow extends UScrollWindow {
 
         topPosTime = startTime + mScrollBarV.getTopPos() * p2t;
 
-        ULog.print(TAG, "topPosTime:" + LogTime.longToDouble(topPosTime));
-
-
         // 最初のメモリの時間を計算する
         TimeUnit timeUnit = pixelPerTime.getTimeUnit();
         long memNext = (topPosTime + p2t * 100) / (p2t * 100);
@@ -289,25 +287,38 @@ public class LogViewWindow extends UScrollWindow {
         List<LogBase> logs = RealmManager.getLogViewDao()
                 .selectByAreaTime(topPosTime, topPosTime + pageTime + 100);
 
+//        for (LogBase log : logs) {
+//            ULog.print(TAG, " logId:" + log._getLogId() +
+//                            " logLane:" + log.getLaneId() +
+//                            " logType:" + log._getType() +
+//                            " logTime:" + log.getTime());
+//        }
+
         float topY = y;
         for (LogBase log : logs) {
             // 表示座標を求める
-            y = topY + (log.getTime() - topPosTime) / p2t;
 
             switch (log._getType()) {
                 case Point:
+                    y = topY + (log.getTime() - topPosTime) / p2t;
                     UDraw.drawCircleFill(canvas, paint, new PointF(x + 200, y),
                             LOG_W, log._getLogId().getColor());
                     break;
                 case Text:
+                    y = topY + (log.getTime() - topPosTime) / p2t;
                     UDraw.drawCircleFill(canvas, paint, new PointF(x + 200, y),
                             LOG_W, log._getLogId().getColor());
                     UDraw.drawTextOneLine(canvas, paint, log.getText(), UAlignment.None,
                             LOG_W, x + 200 + 35, y + 5, Color.WHITE);
                     break;
                 case Area:
-//                    UDraw.drawRectFill(canvas, paint, new PointF(x + 200, y),
-//                            30, log._getLogId().getColor());
+                    y = topY + (log.getTime() - topPosTime) / p2t;
+                    int y2 =  (int)((log.getTime2() - topPosTime) / p2t);
+
+                    UDraw.drawRectFill(canvas, paint,
+                            new Rect((int)x + 200, (int)y, (int)x + 200 + 50, y2),
+                            log._getLogId().getColor(), 2, Color.WHITE);
+
                     break;
             }
         }

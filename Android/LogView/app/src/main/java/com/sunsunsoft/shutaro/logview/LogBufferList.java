@@ -29,12 +29,15 @@ public class LogBufferList extends LogBuffer {
     /**
      * Methods
      */
-    public LogBase addLog(LogType type, LogAreaType areaType, LogId id, long time, String text) {
+
+    public LogBase addLog(LogType type, LogId id, int laneId, long time, long
+            time2,
+                          String text) {
         if (mLogs.size() >= maxSize) {
             // バッファが最大値に達していたら古いものから削除
             mLogs.removeFirst();
         }
-        Log1 log = new Log1(topId, id, type, areaType, time - startTime, text);
+        Log1 log = new Log1(type, id, topId, text, time - startTime, 0);
         mLogs.add(log);
 
         topId++;

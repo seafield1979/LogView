@@ -4,7 +4,6 @@ import java.util.List;
 
 /**
  * データベースを使用したLogBuffer
- *
  * データベースは１つだけなのでシングルトンで実装する
  */
 
@@ -31,17 +30,16 @@ public class LogBufferDB extends LogBuffer {
         return singleton;
     }
 
-    public LogBase addLog(LogType type, LogAreaType areaType, LogId id, long time, String
-            text)
+    public LogBase addLog(LogType type, LogId id, int laneId,
+                          long time1, long time2, String text)
     {
         Log2 log = new Log2();
         log.setId(topId);
         log.setType(type.ordinal());
-        if (areaType != null) {
-            log.setAreaType(areaType.ordinal());
-        }
         log.setLogId(id.ordinal());
-        log.setTime(time - startTime);
+        log.setLaneId(laneId);
+        log.setTime(time1 - startTime);
+        log.setTime2(time2 - startTime);
         if (text != null) {
             log.setText(text);
         }

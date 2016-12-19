@@ -27,6 +27,7 @@ abstract public class LogBuffer {
 
     // 指定可能なバッファのサイズの最大値
     protected static final int LOG_MAX = 100000;
+    public static final int LANE_MAX = 20;
 
     /**
      * Static Variables
@@ -60,20 +61,20 @@ abstract public class LogBuffer {
     /**
      * Methods
      */
-    public LogBase addPointLog(LogId id, long time) {
-        return this.addLog(LogType.Point, null, id, time, null);
+    public LogBase addPointLog(LogId id, int laneId, long time) {
+        return this.addLog(LogType.Point, id, laneId, time, 0, null);
     }
 
-    public LogBase addTextLog(LogId id, long time, String text) {
-        return this.addLog(LogType.Text, null, id, time, text);
+    public LogBase addTextLog(LogId id, int laneId, long time, String text) {
+        return this.addLog(LogType.Text, id, laneId, time, 0, text);
     }
 
-    public LogBase addAreaLog(LogId id, LogAreaType areaType, long time) {
-        return this.addLog(LogType.Area, areaType, id, time, null);
+    public LogBase addAreaLog(LogId id, int laneId, long startTime, long endTime) {
+        return this.addLog(LogType.Area, id, laneId, startTime, endTime, null);
     }
 
-    abstract public LogBase addLog(LogType type, LogAreaType areaType, LogId id, long time, String
-            text);
+    abstract public LogBase addLog(LogType type, LogId id, int laneId,
+                                   long startTime, long endTime, String text);
 
     /**
      * clear logs

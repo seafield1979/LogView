@@ -30,7 +30,6 @@ interface LogBase {
     // RealmオブジェクトではEnumを扱えないのでデフォルトのGetterの名前から変えてある
     LogType _getType();
     LogId _getLogId();
-    LogAreaType _getAreaType();
     String getText();
 
     /**
@@ -49,7 +48,12 @@ interface LogBase {
 
     /**
      * 浮動小数点型の時間を取得する
-     * @return
      */
     long getTime();
+    long getTime2();
+
+    /**
+     * ログを表示するレーンID
+     */
+    int getLaneId();
 }

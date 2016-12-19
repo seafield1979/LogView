@@ -1,13 +1,11 @@
 package com.sunsunsoft.shutaro.logview;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -37,7 +35,8 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
     /**
      * Member variables
      */
-    private LogBufferDB logBuf = LogBufferDB.getInstance();
+    private LogBufferDB mLogBuf = LogBufferDB.getInstance();
+    private LogAddBuffer mLogAddBuf = LogAddBuffer.getInstance();
 
     // クリック判定の仕組み
     private ViewTouch vt = new ViewTouch(this);
@@ -60,13 +59,11 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
     // サイズ更新用
     private boolean isFirst = true;
 
-    private boolean logTypeSwitch = false;
-
     /**
      * Get/Set
      */
-    public LogBufferDB getLogBuf() {
-        return logBuf;
+    public LogBufferDB getmLogBuf() {
+        return mLogBuf;
     }
 
     /**
@@ -82,7 +79,7 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
         mContext = context;
 
         // ログをクリア
-        logBuf.clearLog();
+        mLogBuf.clearLog();
 
         startTimer();
     }
@@ -125,7 +122,7 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
 
         // LogViewWindow
         if (mLogViewWin == null) {
-            mLogViewWin = LogViewWindow.createInstance(getContext(), this, logBuf,
+            mLogViewWin = LogViewWindow.createInstance(getContext(), this, mLogBuf,
                     0, 0, getWidth(), getHeight() - mMenuBar.getHeight());
             mWindows[WindowType.LogView.ordinal()] = mLogViewWin;
             mLogViewWin.addToDrawManager();
@@ -148,6 +145,9 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
         }
         // 背景塗りつぶし
         canvas.drawColor(Color.WHITE);
+
+        // LogAddBuffer から LogBuffer にデータを移動
+        mLogAddBuf.addToLogBuffer(mLogBuf);
 
         mLogViewWin.update();
 
@@ -252,26 +252,13 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
                 }
                 break;
             case AddLogPoint:
-                getLogBuf().addPointLog(LogId.Log1, System.nanoTime());
-                updateView();
-                invalidate();
+                mLogAddBuf.addLog(LogType.Point, LogId.Log1, 0, null, System.nanoTime());
                 break;
             case AddLogText:
-                getLogBuf().addTextLog(LogId.Log2, System.nanoTime(), "hoge");
-                updateView();
-                invalidate();
+                mLogAddBuf.addLog(LogType.Text, LogId.Log1, 0, "hoge", System.nanoTime());
                 break;
             case AddLogArea: {
-                LogAreaType areaType = LogAreaType.Start;
-                if (!logTypeSwitch) {
-                    areaType = LogAreaType.End;
-                }
-                logTypeSwitch = !logTypeSwitch;
-
-                getLogBuf().addAreaLog(LogId.Log3, areaType, System.nanoTime());
-
-                updateView();
-                invalidate();
+                mLogAddBuf.addLog(LogType.Area, LogId.Log1, 0, null, System.nanoTime());
             }
                 break;
             case ClearLogs:
