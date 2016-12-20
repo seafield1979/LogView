@@ -6,7 +6,7 @@ package com.sunsunsoft.shutaro.logview;
 
 public class UDebug {
     public static boolean drawIconId = false;
-    public static boolean debugLogView = true;
+    public static boolean debugLogView = false;
     // Debug mode
     public static final boolean isDebug = true;
 

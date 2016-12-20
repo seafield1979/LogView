@@ -36,6 +36,8 @@ public class MenuBarLogView extends UMenuBar {
         ZoomTop(R.drawable.zoom, MenuItemType.Top),
         ZoomIn(R.drawable.zoom_in, MenuItemType.Child),
         ZoomOut(R.drawable.zoom_out, MenuItemType.Child),
+        ZoomLane(R.drawable.resize_expand, MenuItemType.Child),
+        ZoomOutLane(R.drawable.resize_shrink, MenuItemType.Child),
 
         MoveTop(R.drawable.sort_arrows, MenuItemType.Top),
         Next(R.drawable.skip_down, MenuItemType.Child),

@@ -255,10 +255,10 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
                 mLogAddBuf.addLog(LogType.Point, LogId.Log1, 0, null, System.nanoTime());
                 break;
             case AddLogText:
-                mLogAddBuf.addLog(LogType.Text, LogId.Log1, 0, "hoge", System.nanoTime());
+                mLogAddBuf.addLog(LogType.Text, LogId.Log1, 1, "hoge", System.nanoTime());
                 break;
             case AddLogArea: {
-                mLogAddBuf.addLog(LogType.Area, LogId.Log1, 0, null, System.nanoTime());
+                mLogAddBuf.addLog(LogType.Area, LogId.Log1, 2, null, System.nanoTime());
             }
                 break;
             case ClearLogs:
@@ -272,6 +272,12 @@ public class LogView extends View implements OnTouchListener, ViewTouchCallbacks
             case ZoomOut:
                 mLogViewWin.zoomOut();
                 invalidate();
+                break;
+            case ZoomLane:
+                mLogViewWin.laneExpand();
+                break;
+            case ZoomOutLane:
+                mLogViewWin.laneShrink();
                 break;
         }
     }

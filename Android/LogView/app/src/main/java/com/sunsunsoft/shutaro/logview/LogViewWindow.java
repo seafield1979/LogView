@@ -13,6 +13,51 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * レーンの幅の種類
+ */
+enum LaneWidth {
+    Min(40),
+    W2(50),
+    W3(60),
+    W4(70),
+    W5(80),
+    W6(100),
+    W7(120),
+    Max(150)
+    ;
+
+    private int width;
+
+    private LaneWidth(int width) {
+        this.width = width;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    /**
+     * 次の値に進める
+     */
+    public static LaneWidth expand(LaneWidth now) {
+        return toEnum(now.ordinal() + 1);
+    }
+    public static LaneWidth shrink(LaneWidth now) {
+        return toEnum(now.ordinal() - 1);
+    }
+
+    public static LaneWidth toEnum(int value) {
+        if (value >= values().length) {
+            return Max;
+        } else if (value < 0) {
+            return Min;
+        } else {
+            return values()[value];
+        }
+    }
+}
+
+/**
  * LogView本体のWindow
  */
 
@@ -22,8 +67,13 @@ public class LogViewWindow extends UScrollWindow {
      */
     public static final String TAG = "LogViewWindow";
     private static final int DRAW_PRIORITY = 100;
-    private static final int TOP_Y = 50;
+    private static final int TOP_Y = 0;
     private static final int BG_COLOR = Color.BLACK;
+    private static final int LINE_COLOR = Color.WHITE;
+    private static final int TIME_BAR_W = 200;
+
+    private static final int LANE_TEXT_SIZE = 30;
+    private static final int LANE_TOP_H = 70;
 
     // log icons
     private static final int LOG_W = 20;
@@ -37,6 +87,7 @@ public class LogViewWindow extends UScrollWindow {
     private Context mContext;
     private View mParentView;
     private boolean isStop;
+    private LaneWidth mLaneW = LaneWidth.W5;
 
     /*
      1ピクセルに相当する時間(nano sec)
@@ -149,6 +200,16 @@ public class LogViewWindow extends UScrollWindow {
         updateView();
     }
 
+    public void laneExpand() {
+        mLaneW = LaneWidth.expand(mLaneW);
+        updateView();
+    }
+
+    public void laneShrink() {
+        mLaneW = LaneWidth.shrink(mLaneW);
+        updateView();
+    }
+
     public void update() {
         updateView();
     }
@@ -208,7 +269,12 @@ public class LogViewWindow extends UScrollWindow {
     public void drawContent(Canvas canvas, Paint paint, PointF offset) {
         if (!isShow) return;
 
-        float x = 150, y = TOP_Y;
+        PointF _offset = new PointF(TIME_BAR_W, TOP_Y);
+        if (offset != null) {
+            _offset.x += offset.x;
+            _offset.y += offset.y;
+        }
+
         long p2t = pixelPerTime.getDivValue();
 
         // BG
@@ -218,11 +284,15 @@ public class LogViewWindow extends UScrollWindow {
             return;
         }
 
+        // Lanes
+        drawLanes(canvas, paint, _offset);
+
         // TimeBar
-        drawTimeBar(canvas, paint, x, y, p2t);
+        _offset.y += LANE_TOP_H;
+        drawTimeBar(canvas, paint, _offset, p2t);
 
         // Logs
-        drawLogs(canvas, paint, x, y, p2t);
+        drawLogs(canvas, paint, _offset, p2t);
 
         // Debug log
         if (UDebug.debugLogView) {
@@ -238,16 +308,13 @@ public class LogViewWindow extends UScrollWindow {
      * @param p2t
      */
     private void drawTimeBar(Canvas canvas, Paint paint,
-                             float x, float y, long p2t) {
+                             PointF offset, long p2t) {
         // タイムバー
         // BGのラインを描画
         float endY = (float)getHeight();
 
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.WHITE);
-        paint.setStrokeWidth(2);
-
-        canvas.drawLine( x, y, x, endY, paint);
+        // Left line
+        UDraw.drawLine(canvas, paint, offset.x, offset.y, offset.x, endY, 2, LINE_COLOR);
 
         topPosTime = startTime + mScrollBarV.getTopPos() * p2t;
 
@@ -256,32 +323,54 @@ public class LogViewWindow extends UScrollWindow {
         long memNext = (topPosTime + p2t * 100) / (p2t * 100);
         long memTime = memNext * p2t * 100;
 
-        float topY = y;
+        float topY = offset.y;
+        float y;
         while(memTime < topPosTime + pageTime) {
             y = topY + (memTime - topPosTime) / p2t;
-            canvas.drawLine(x -20, y , x, y, paint);
+            UDraw.drawLine(canvas, paint, offset.x - 20, y , offset.x, y, 2, LINE_COLOR);
 
             // テキスト
             String value = String.format("%d", memTime / timeUnit.divValue());
             String text = "" + value + " " + timeUnit.unitStr();
 
             UDraw.drawTextOneLine(canvas, paint, text, UAlignment.Right_CenterY,
-                    30, x - 30, y,
+                    30, offset.x - 30, y,
                     Color.WHITE);
 
             memTime += p2t * 100;
         }
+    }
 
+    /**
+     * レーンを表示
+     * @param canvas
+     * @param paint
+     * @param offset
+     */
+    private void drawLanes(Canvas canvas, Paint paint, PointF offset) {
+        // トップ領域
+        UDraw.drawLine(canvas, paint, offset.x, offset.y + LANE_TOP_H, size.width, offset.y + LANE_TOP_H, 2, LINE_COLOR );
+
+        // Lanes
+        float x = offset.x;
+        float y = offset.y;
+        for (int i=0; i<5; i++) {
+            UDraw.drawLine(canvas, paint, x + mLaneW.getWidth(), y,
+                    x + mLaneW.getWidth(), y + LANE_TOP_H, 2, LINE_COLOR );
+
+            UDraw.drawTextOneLine(canvas, paint, "" + (i+1), UAlignment.Center.Center,
+                    LANE_TEXT_SIZE,
+                    x + (mLaneW.getWidth() / 2), y + LANE_TOP_H / 2, LINE_COLOR);
+            x += mLaneW.getWidth();
+        }
     }
 
     /**
      * ログを表示
-     * @param x
-     * @param y
+     * @param offset
      * @param p2t
      */
-    private void drawLogs(Canvas canvas, Paint paint,
-                          float x, float y, long p2t)
+    private void drawLogs(Canvas canvas, Paint paint, PointF offset, long p2t)
     {
         // 表示領域に含まれるログを取得
         List<LogBase> logs = RealmManager.getLogViewDao()
@@ -294,34 +383,47 @@ public class LogViewWindow extends UScrollWindow {
 //                            " logTime:" + log.getTime());
 //        }
 
-        float topY = y;
+        // クリッピング前の状態を保存
+        canvas.save();
+
+        // クリッピングを設定
+        canvas.clipRect(offset.x, offset.y, getWidth(), getHeight());
+
+        float topY = offset.y;
+        float x;
+        int laneW = mLaneW.getWidth();
+
         for (LogBase log : logs) {
             // 表示座標を求める
-
+            x = offset.x + log.getLaneId() * laneW;
             switch (log._getType()) {
                 case Point:
-                    y = topY + (log.getTime() - topPosTime) / p2t;
-                    UDraw.drawCircleFill(canvas, paint, new PointF(x + 200, y),
-                            LOG_W, log._getLogId().getColor());
+                    offset.y = topY + (log.getTime() - topPosTime) / p2t;
+                    x += laneW / 2;
+                    UDraw.drawCircle(canvas, paint, new PointF(x, offset.y),
+                            LOG_W, 5, log._getLogId().getColor());
                     break;
                 case Text:
-                    y = topY + (log.getTime() - topPosTime) / p2t;
-                    UDraw.drawCircleFill(canvas, paint, new PointF(x + 200, y),
+                    offset.y = topY + (log.getTime() - topPosTime) / p2t;
+                    x += laneW / 2;
+                    UDraw.drawCircleFill(canvas, paint, new PointF(x, offset.y),
                             LOG_W, log._getLogId().getColor());
                     UDraw.drawTextOneLine(canvas, paint, log.getText(), UAlignment.None,
-                            LOG_W, x + 200 + 35, y + 5, Color.WHITE);
+                            LOG_W, x + 35, offset.y + 5, Color.WHITE);
                     break;
                 case Area:
-                    y = topY + (log.getTime() - topPosTime) / p2t;
-                    int y2 =  (int)((log.getTime2() - topPosTime) / p2t);
-
+                    int y1 = (int)(topY + (log.getTime() - topPosTime) / p2t);
+                    int y2 = (int)(topY + (log.getTime2() - topPosTime) / p2t);
                     UDraw.drawRectFill(canvas, paint,
-                            new Rect((int)x + 200, (int)y, (int)x + 200 + 50, y2),
+                            new Rect((int)x, y1, (int)x + laneW, y2),
                             log._getLogId().getColor(), 2, Color.WHITE);
 
                     break;
             }
         }
+
+        // クリッピングを解除
+        canvas.restore();
     }
 
     /**
